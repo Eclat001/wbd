@@ -60,10 +60,25 @@ class TCurve(object):
         exponent = -(n + 1.0) / 2
         result = base ** exponent
         return result
-    
+         
     def integrate(self, t, n, f):
-        pass
-        
+        epsilon = 0.001
+        simpsonOld = 0
+        simpsonNew = epsilon
+        s = 4
+        while abs((simpsonNew - simpsonOld ) / simpsonNew) > epsilon:
+            simpsonOld = simpsonNew
+            w = t / s
+            for i in range(1, s - 1):
+                if i % 2 == 0:
+                    c = 2
+                else:
+                    c = 4
+                simpsonNew += c * f(i * w, n) 
+            simpsonNew += f(0, n) + f(t, n)
+            simpsonNew *= (w / 3)  
+            s = s * 2 
+        return simpsonNew
         
     
         
