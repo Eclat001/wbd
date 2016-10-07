@@ -3,11 +3,12 @@ from __builtin__ import int
 class Angle():
     def __init__(self):
         self.angle = 0       #set to 0 degrees 0 minutes
-    def setDegrees(self, degrees):
+    def setDegrees(self, degrees = 0.0):        
         if (not isinstance(degrees, int) and not isinstance(degrees, float)):
             raise ValueError('Angle.setDegrees:  "degrees" violates the parameter specifications')
         else:
-            self.angle = degrees % 360
+            self.angle = float (degrees % 360)
+            self.angle = round(self.angle, 1)
             return self.angle
                     
     def setDegreesAndMinutes(self, angleString):
@@ -38,22 +39,38 @@ class Angle():
             if (xdy[1].find(".") < len(xdy[1]) - 2):
                 raise ValueError("Angle.setDegreesAndMinutes: minutes must have only one decimal place")  
             else:
-                self.angle =  int ((degree + minute / 60) % 360) + minute % 60 / 60.0
+                if degree < 0:
+                    self.angle =  int ((degree + minute / 60) % 360) - minute % 60 / 60.0
+                else:
+                    self.angle =  int ((degree + minute / 60) % 360) + minute % 60 / 60.0
+                self.angle = round(self.angle, 1)
                 return self.angle
     
-    def add(self, angle):
+    def add(self, angle = None):
+        if angle == None:
+            raise ValueError('Angle.add: "angle" can not be empty')
+        if (not isinstance(angle, Angle)):
+            raise ValueError('Angle.add: "angle" is not a valid instance of Angle')
         if (not isinstance(angle.angle, int) and not isinstance(angle.angle, float)):
             raise ValueError('Angle.add:  "angle" is not a valid instance of Angle')
         self.angle = (self.angle + angle.angle) % 360
         return self.angle
     
-    def subtract(self, angle):
+    def subtract(self, angle=None):
+        if angle == None:
+            raise ValueError('Angle.subtract: "angle" can not be empty')
+        if (not isinstance(angle, Angle)):
+            raise ValueError('Angle.subtract:  "angle" is not a valid instance of Angle')
         if (not isinstance(angle.angle, int) and not isinstance(angle.angle, float) and not isinstance(angle, str)):
-            raise ValueError('Angle.substract:  "angle" is not a valid instance of Angle')
+            raise ValueError('Angle.subtract:  "angle" is not a valid instance of Angle')
         self.angle = (self.angle - angle.angle) % 360
         return self.angle
     
-    def compare(self, angle):
+    def compare(self, angle=None):
+        if angle == None:
+            raise ValueError('Angle.compare: "angle" can not be empty')
+        if (not isinstance(angle, Angle)):
+            raise ValueError('Angle.compare:   "angle" is not a valid instance of Angle')
         if (not isinstance(angle.angle, int) and not isinstance(angle.angle, float)):
             raise ValueError('Angle.compare:   "angle" is not a valid instance of Angle')
         if (self.angle < angle.angle):
