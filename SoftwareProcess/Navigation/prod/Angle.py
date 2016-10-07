@@ -8,7 +8,6 @@ class Angle():
             raise ValueError('Angle.setDegrees:  "degrees" violates the parameter specifications')
         else:
             self.angle = float (degrees % 360)
-            self.angle = round(self.angle, 1)
             return self.angle
                     
     def setDegreesAndMinutes(self, angleString):
