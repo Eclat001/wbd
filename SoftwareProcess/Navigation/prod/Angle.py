@@ -8,6 +8,9 @@ class Angle():
             raise ValueError('Angle.setDegrees:  "degrees" violates the parameter specifications')
         else:
             self.angle = float (degrees % 360)
+            degree = int (self.angle)
+            minute = round((self.angle - degree) * 60, 1)
+            self.angle = degree + minute / 60.0
             return self.angle
                     
     def setDegreesAndMinutes(self, angleString):
@@ -42,14 +45,13 @@ class Angle():
                     self.angle =  int ((degree + minute / 60) % 360) - minute % 60 / 60.0
                 else:
                     self.angle =  int ((degree + minute / 60) % 360) + minute % 60 / 60.0
-                self.angle = round(self.angle, 1)
                 return self.angle
     
     def add(self, angle = None):
         if angle == None:
-            raise ValueError('Angle.add: "angle" can not be empty')
+            raise ValueError('Angle.add:  "angle" can not be empty')
         if (not isinstance(angle, Angle)):
-            raise ValueError('Angle.add: "angle" is not a valid instance of Angle')
+            raise ValueError('Angle.add:  "angle" is not a valid instance of Angle')
         if (not isinstance(angle.angle, int) and not isinstance(angle.angle, float)):
             raise ValueError('Angle.add:  "angle" is not a valid instance of Angle')
         self.angle = (self.angle + angle.angle) % 360
@@ -57,7 +59,7 @@ class Angle():
     
     def subtract(self, angle=None):
         if angle == None:
-            raise ValueError('Angle.subtract: "angle" can not be empty')
+            raise ValueError('Angle.subtract:  "angle" can not be empty')
         if (not isinstance(angle, Angle)):
             raise ValueError('Angle.subtract:  "angle" is not a valid instance of Angle')
         if (not isinstance(angle.angle, int) and not isinstance(angle.angle, float) and not isinstance(angle, str)):
@@ -67,7 +69,7 @@ class Angle():
     
     def compare(self, angle=None):
         if angle == None:
-            raise ValueError('Angle.compare: "angle" can not be empty')
+            raise ValueError('Angle.compare:  "angle" can not be empty')
         if (not isinstance(angle, Angle)):
             raise ValueError('Angle.compare:   "angle" is not a valid instance of Angle')
         if (not isinstance(angle.angle, int) and not isinstance(angle.angle, float)):
@@ -85,5 +87,5 @@ class Angle():
         return str (degree) + "d" + str (minute)
     
     def getDegrees(self):
-        self.angle = round(self.angle % 360, 1)
+        self.angle = self.angle % 360
         return self.angle       
