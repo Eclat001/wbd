@@ -150,6 +150,8 @@ class Fix():
                     height = 0
                 else:
                     height = heightTag.text
+                    if height == "":
+                        height = 0
                     try:
                         height = float (height)
                     except:
@@ -162,6 +164,8 @@ class Fix():
                     temperature = 72
                 else:
                     temperature = temperatureTag.text
+                    if temperature == "":
+                        temperature = 72
                     try:
                         temperature = int (temperature)
                     except:
@@ -176,6 +180,8 @@ class Fix():
                     pressure = 1010
                 else:
                     pressure = pressureTag.text
+                    if pressure == "":
+                        pressure = 1010
                     try:
                         pressure = int (pressure)
                     except:
@@ -189,7 +195,10 @@ class Fix():
                 if horizonTag == None:
                     horizon = "natural"
                 else:
-                    horizon = horizonTag.text.lower()
+                    horizon = horizonTag.text
+                    if horizon == "":
+                        horizon = "natural"
+                    horizon = horizon.lower()
                     if horizon != "artificial" and horizon != "natural":
                         raise ValueError('Fix.getSightings:  horizon must be either"artificial" or "natural"')
                     

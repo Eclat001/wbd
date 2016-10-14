@@ -3024,3 +3024,101 @@ LOG:	16-10-13 14:17:50-06:00	Start of log
 LOG:	16-10-13 14:17:50-06:00	Start of log
 LOG:	16-10-13 14:17:50-06:00	Start of log
 LOG:	16-10-13 14:17:50-06:00	Start of log
+LOG:	16-10-14 14:21:57-06:00	Start of log
+LOG:	16-10-14 14:21:57-06:00	Start of sighting file:	sightingFile.xml
+LOG:	16-10-14 14:21:57-06:00	Aldebaran	2016-03-01	23:40:01	15d1.5
+LOG:	16-10-14 14:21:57-06:00	Peacock	2016-03-02	00:05:05	45d11.9
+LOG:	16-10-14 14:21:57-06:00	End of sighting file:	sightingFile.xml
+LOG:	16-10-14 14:21:57-06:00	Start of log
+LOG:	16-10-14 14:21:57-06:00	Start of sighting file:	sightingFile.xml
+LOG:	16-10-14 14:21:57-06:00	Aldebaran	2016-03-01	23:40:01	15d1.5
+LOG:	16-10-14 14:21:57-06:00	Peacock	2016-03-02	00:05:05	45d11.9
+LOG:	16-10-14 14:21:57-06:00	End of sighting file:	sightingFile.xml
+LOG:	16-10-14 14:21:57-06:00	Start of log
+LOG:	16-10-14 14:21:57-06:00	Start of sighting file:	sightingFile_heightmissing.xml
+LOG:	16-10-14 14:21:57-06:00	Aldebaran	2016-03-01	23:40:01	15d1.5
+LOG:	16-10-14 14:21:57-06:00	Peacock	2016-03-02	00:05:05	45d11.9
+LOG:	16-10-14 14:21:57-06:00	End of sighting file:	sightingFile_heightmissing.xml
+LOG:	16-10-14 14:21:57-06:00	Start of log
+LOG:	16-10-14 14:21:57-06:00	Start of sighting file:	sightingFile_temperaturemissing.xml
+LOG:	16-10-14 14:21:57-06:00	Aldebaran	2016-03-01	23:40:01	15d1.5
+LOG:	16-10-14 14:21:57-06:00	Peacock	2016-03-02	00:05:05	45d11.9
+LOG:	16-10-14 14:21:57-06:00	End of sighting file:	sightingFile_temperaturemissing.xml
+LOG:	16-10-14 14:21:57-06:00	Start of log
+LOG:	16-10-14 14:21:57-06:00	Start of sighting file:	sightingFile_pressuremissing.xml
+LOG:	16-10-14 14:21:57-06:00	Aldebaran	2016-03-01	23:40:01	15d1.5
+LOG:	16-10-14 14:21:57-06:00	Peacock	2016-03-02	00:05:05	45d11.9
+LOG:	16-10-14 14:21:57-06:00	End of sighting file:	sightingFile_pressuremissing.xml
+LOG:	16-10-14 14:21:57-06:00	Start of log
+LOG:	16-10-14 14:21:57-06:00	Start of sighting file:	sightingFile_horizonmissing.xml
+LOG:	16-10-14 14:21:57-06:00	Aldebaran	2016-03-01	23:40:01	14d59.1
+LOG:	16-10-14 14:21:57-06:00	Peacock	2016-03-02	00:05:05	45d11.9
+LOG:	16-10-14 14:21:57-06:00	End of sighting file:	sightingFile_horizonmissing.xml
+LOG:	16-10-14 14:21:57-06:00	Start of log
+LOG:	16-10-14 14:21:57-06:00	Start of sighting file:	sightingFile.xml
+LOG:	16-10-14 14:21:57-06:00	Aldebaran	2016-03-01	23:40:01	15d1.5
+LOG:	16-10-14 14:21:57-06:00	Peacock	2016-03-02	00:05:05	45d11.9
+LOG:	16-10-14 14:21:57-06:00	End of sighting file:	sightingFile.xml
+LOG:	16-10-14 14:21:57-06:00	Start of log
+LOG:	16-10-14 14:21:57-06:00	Start of sighting file:	sightingFile_bodymissing.xml
+LOG:	16-10-14 14:21:57-06:00	Start of log
+LOG:	16-10-14 14:21:57-06:00	Start of sighting file:	sightingFile_observationxbad.xml
+LOG:	16-10-14 14:21:57-06:00	Start of log
+LOG:	16-10-14 14:21:57-06:00	Start of sighting file:	sightingFile_observationxnegative.xml
+LOG:	16-10-14 14:21:57-06:00	Start of log
+LOG:	16-10-14 14:21:57-06:00	Start of sighting file:	sightingFile_observationxG90.xml
+LOG:	16-10-14 14:21:57-06:00	Start of log
+LOG:	16-10-14 14:21:57-06:00	Start of sighting file:	sightingFile_observationy.ymissing.xml
+LOG:	16-10-14 14:21:57-06:00	Start of log
+LOG:	16-10-14 14:21:57-06:00	Start of sighting file:	sightingFile_observationy.ynegative.xml
+LOG:	16-10-14 14:21:57-06:00	Start of log
+LOG:	16-10-14 14:21:57-06:00	Start of sighting file:	sightingFile_observationy.yG60.xml
+LOG:	16-10-14 14:21:57-06:00	Start of log
+LOG:	16-10-14 14:21:57-06:00	Start of sighting file:	sightingFile_observationy.ybad.xml
+LOG:	16-10-14 14:21:57-06:00	Start of log
+LOG:	16-10-14 14:21:57-06:00	Start of sighting file:	sightingFile_heightstring.xml
+LOG:	16-10-14 14:21:57-06:00	Start of log
+LOG:	16-10-14 14:21:57-06:00	Start of sighting file:	sightingFile_heightnegative.xml
+LOG:	16-10-14 14:21:57-06:00	Start of log
+LOG:	16-10-14 14:21:57-06:00	Start of sighting file:	sightingFile_bodybad.xml
+LOG:	16-10-14 14:21:57-06:00	Start of log
+LOG:	16-10-14 14:21:57-06:00	Start of sighting file:	sightingFile_temperaturestring.xml
+LOG:	16-10-14 14:21:57-06:00	Start of log
+LOG:	16-10-14 14:21:57-06:00	Start of sighting file:	sightingFile_temperatureL-20.xml
+LOG:	16-10-14 14:21:57-06:00	Start of log
+LOG:	16-10-14 14:21:57-06:00	Start of sighting file:	sightingFile_temperatureG120.xml
+LOG:	16-10-14 14:21:57-06:00	Start of log
+LOG:	16-10-14 14:21:57-06:00	Start of sighting file:	sightingFile_pressurestring.xml
+LOG:	16-10-14 14:21:57-06:00	Start of log
+LOG:	16-10-14 14:21:57-06:00	Start of sighting file:	sightingFile_pressureL100.xml
+LOG:	16-10-14 14:21:57-06:00	Start of log
+LOG:	16-10-14 14:21:57-06:00	Start of sighting file:	sightingFile_pressureG1100.xml
+LOG:	16-10-14 14:21:57-06:00	Start of log
+LOG:	16-10-14 14:21:57-06:00	Start of sighting file:	sightingFile_horizonbad.xml
+LOG:	16-10-14 14:21:57-06:00	Start of log
+LOG:	16-10-14 14:21:57-06:00	Start of sighting file:	sightingFile_extremesmallaltitude.xml
+LOG:	16-10-14 14:21:57-06:00	Start of log
+LOG:	16-10-14 14:21:57-06:00	Start of sighting file:	sightingFile_datemissing.xml
+LOG:	16-10-14 14:21:57-06:00	Start of log
+LOG:	16-10-14 14:21:57-06:00	Start of sighting file:	sightingFile_datebad.xml
+LOG:	16-10-14 14:21:57-06:00	Start of log
+LOG:	16-10-14 14:21:57-06:00	Start of sighting file:	sightingFile_timemissing.xml
+LOG:	16-10-14 14:21:57-06:00	Start of log
+LOG:	16-10-14 14:21:57-06:00	Start of sighting file:	sightingFile_timebad.xml
+LOG:	16-10-14 14:21:57-06:00	Start of log
+LOG:	16-10-14 14:21:57-06:00	Start of sighting file:	sightingFile_observationmissing.xml
+LOG:	16-10-14 14:21:57-06:00	Start of log
+LOG:	16-10-14 14:21:57-06:00	Start of sighting file:	sightingFile_observationdmissing.xml
+LOG:	16-10-14 14:21:57-06:00	Start of log
+LOG:	16-10-14 14:21:57-06:00	Start of sighting file:	sightingFile_observationxmissing.xml
+LOG:	16-10-14 14:21:57-06:00	Start of log
+LOG:	16-10-14 14:21:57-06:00	Start of log
+LOG:	16-10-14 14:21:57-06:00	Start of sighting file:	sightingFile.xml
+LOG:	16-10-14 14:21:57-06:00	Start of log
+LOG:	16-10-14 14:21:57-06:00	Start of sighting file:	sightingFile.xml
+LOG:	16-10-14 14:21:57-06:00	Start of log
+LOG:	16-10-14 14:21:57-06:00	Start of log
+LOG:	16-10-14 14:21:57-06:00	Start of log
+LOG:	16-10-14 14:21:57-06:00	Start of log
+LOG:	16-10-14 14:21:57-06:00	Start of log
+LOG:	16-10-14 14:21:57-06:00	Start of log
