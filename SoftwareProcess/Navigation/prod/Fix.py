@@ -1,3 +1,8 @@
+'''
+Created on Oct 26, 2016
+
+@author: eclat
+'''
 from genericpath import isfile
 import datetime
 import time
@@ -49,7 +54,7 @@ class Fix():
         if len(sightingFile) < 5:
             raise ValueError('Fix.setSightingFile:  the file name violates the parameter specification')
         try:
-            sighting = open(sightingFile, 'a+')
+            sighting = open(sightingFile, 'r')
         except:
             raise ValueError('Fix.setSightingFile:  the file can not be opened')
         logEntry = self.message("Start of sighting file:\t" + sightingFile)
@@ -76,7 +81,10 @@ class Fix():
         except:
             raise ValueError('Fix.getSightings:  "logFile" can not be opened for appending')
         sighting_tuples = []
-        tree = ET.parse(self.sightingFile)
+        try:
+            tree = ET.parse(self.sightingFile)
+        except:
+            raise ValueError('Fix.getSightings:  "sightingFile" does not exist')
         root = tree.getroot()
         if root.tag == "fix":
             for child in tree.findall("sighting"):

@@ -148,3 +148,15 @@ LOG:	16-10-13 14:17:50-06:00	Start of log
 LOG:	16-10-13 14:17:50-06:00	Start of log
 LOG:	16-10-14 14:21:57-06:00	Start of log
 LOG:	16-10-14 14:21:57-06:00	Start of log
+LOG:	16-10-25 13:14:38-06:00	Log file:	/Users/eclat/git/SoftwareProcess/SoftwareProcess/Navigation/test/normal.txt
+LOG:	16-10-25 13:14:38-06:00	Log file:	/Users/eclat/git/SoftwareProcess/SoftwareProcess/Navigation/test/normal.txt
+LOG:	16-10-25 13:15:08-06:00	Log file:	/Users/eclat/git/SoftwareProcess/SoftwareProcess/Navigation/test/normal.txt
+LOG:	16-10-25 13:15:08-06:00	Log file:	/Users/eclat/git/SoftwareProcess/SoftwareProcess/Navigation/test/normal.txt
+LOG:	16-10-26 09:26:31-06:00	Log file:	/Users/eclat/git/SoftwareProcess/SoftwareProcess/Navigation/test/normal.txt
+LOG:	16-10-26 09:26:31-06:00	Log file:	/Users/eclat/git/SoftwareProcess/SoftwareProcess/Navigation/test/normal.txt
+LOG:	16-10-26 09:48:52-06:00	Log file:	/Users/eclat/git/SoftwareProcess/SoftwareProcess/Navigation/test/normal.txt
+LOG:	16-10-26 09:48:52-06:00	Log file:	/Users/eclat/git/SoftwareProcess/SoftwareProcess/Navigation/test/normal.txt
+LOG:	16-10-26 09:49:25-06:00	Log file:	/Users/eclat/git/SoftwareProcess/SoftwareProcess/Navigation/test/normal.txt
+LOG:	16-10-26 09:49:25-06:00	Log file:	/Users/eclat/git/SoftwareProcess/SoftwareProcess/Navigation/test/normal.txt
+LOG:	16-10-26 10:43:20-06:00	Log file:	/Users/eclat/git/SoftwareProcess/SoftwareProcess/Navigation/test/normal.txt
+LOG:	16-10-26 10:43:20-06:00	Log file:	/Users/eclat/git/SoftwareProcess/SoftwareProcess/Navigation/test/normal.txt
