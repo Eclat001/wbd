@@ -1,19 +1,19 @@
-'''
-Created on Oct 26, 2016
-
-@author: eclat
-'''
 from genericpath import isfile
 import datetime
 import time
 import xml.etree.ElementTree as ET
 import math
 from operator import itemgetter
+import os
 
 class Fix():
     def __init__(self, logFile = 'log.txt'):
         self.logFile = logFile
         self.sightingFile = None
+        self.ariesFile = None
+        self.starFile = None
+        self.sightingError = 0
+        self.sighting_tuples = []
         if not isinstance(logFile, str):
             raise ValueError('Fix.__init__:  "logFile" is a string')
         if (len(logFile) < 1):
@@ -28,7 +28,7 @@ class Fix():
                 log = open(logFile, 'a')    
             except:
                 raise ValueError('Fix.__init__:  "logFile" can not be opened for appending')
-        logEntry = self.message("Start of log")
+        logEntry = self.message("Log file:\t" + os.path.abspath(self.logFile))
         try:
             log.write(logEntry)
         except:
@@ -48,8 +48,11 @@ class Fix():
             raise ValueError('Fix.setSightingFile:  "sightingFile" can not be empty')
         if not isinstance(sightingFile, str):
             raise ValueError('Fix.setSightingFile:  the file name violates the parameter specification')
-        extend = sightingFile[-4:]
-        if not extend == ".xml":
+        try:
+            extend = sightingFile.split(".", 1)[1]
+            if not extend == "xml":
+                raise ValueError('Fix.setSightingFile:  the file name violates the parameter specification')
+        except:
             raise ValueError('Fix.setSightingFile:  the file name violates the parameter specification')
         if len(sightingFile) < 5:
             raise ValueError('Fix.setSightingFile:  the file name violates the parameter specification')
@@ -57,23 +60,90 @@ class Fix():
             sighting = open(sightingFile, 'r')
         except:
             raise ValueError('Fix.setSightingFile:  the file can not be opened')
-        logEntry = self.message("Start of sighting file:\t" + sightingFile)
+        logEntry = self.message("Sighting file:\t" + os.path.abspath(sightingFile))
         try:
             log = open(self.logFile, 'a+') 
         except:
             raise ValueError('Fix.setSightingFile:  "logFile" can not be opened for appending')
-#         log = open(self.logFile, 'a+') 
         try:
             log.write(logEntry)
         except:
-            raise ValueError('Fix.setSightingFile:  "logFile" can not be appended')
-        
+            raise ValueError('Fix.setSightingFile:  "logFile" can not be appended')     
         log.close()    
-        sighting.close()
+        sighting.close()        
         self.sightingFile = sightingFile
-        return sightingFile
+        
+        return os.path.abspath(sightingFile)
+
+    def setAriesFile(self, ariesFile = None):
+        if ariesFile == None:
+            raise ValueError('Fix.setAriesFile:  "AriesFile" can not be empty')
+        if not isinstance(ariesFile, str):
+            raise ValueError('Fix.setAriesFile:  the file name violates the parameter specification')
+        try:
+            extend = ariesFile.split(".", 1)[1]
+            if not extend == "txt":
+                raise ValueError('Fix.setAriesFile:  the file name violates the parameter specification')
+        except:
+            raise ValueError('Fix.setAriesFile:  the file name violates the parameter specification')
+        if len(ariesFile) < 5:
+            raise ValueError('Fix.setAriesFile:  the file name violates the parameter specification')
+        try:
+            aries = open(ariesFile, 'r')
+        except:
+            raise ValueError('Fix.setAriesFile:  the file can not be opened')
+        logEntry = self.message("Aries file:\t" + os.path.abspath(ariesFile))
+        try:
+            log = open(self.logFile, 'a+') 
+        except:
+            raise ValueError('Fix.setAriesFile:  "logFile" can not be opened for appending')
+        try:
+            log.write(logEntry)
+        except:
+            raise ValueError('Fix.setAriesFile:  "logFile" can not be appended')     
+        log.close()    
+        aries.close()        
+        self.ariesFile = ariesFile
+        return os.path.abspath(ariesFile)
+    
+    def setStarFile(self, starFile = None):
+        if starFile == None:
+            raise ValueError('Fix.setStarFile:  "StarFile" can not be empty')
+        if not isinstance(starFile, str):
+            raise ValueError('Fix.setStarFile:  the file name violates the parameter specification')
+        try:
+            extend = starFile.split(".", 1)[1]
+            if not extend == "txt":
+                raise ValueError('Fix.setStarFile:  the file name violates the parameter specification')
+        except:
+            raise ValueError('Fix.setStarFile:  the file name violates the parameter specification')
+        if len(starFile) < 5:
+            raise ValueError('Fix.setStarFile:  the file name violates the parameter specification')
+        try:
+            star = open(starFile, 'r')
+        except:
+            raise ValueError('Fix.setStarFile:  the file can not be opened')
+        logEntry = self.message("Star file:\t" + os.path.abspath(starFile))
+        try:
+            log = open(self.logFile, 'a+') 
+        except:
+            raise ValueError('Fix.setStarFile:  "logFile" can not be opened for appending')
+        try:
+            log.write(logEntry)
+        except:
+            raise ValueError('Fix.setStarFile:  "logFile" can not be appended')     
+        log.close()    
+        star.close()        
+        self.starFile = starFile
+        return os.path.abspath(starFile)
 
     def getSightings(self):
+        if self.sightingFile == None:
+            raise ValueError('Fix.getSightings:  "SightingFile" should not be empty')
+        if self.ariesFile == None:
+            raise ValueError('Fix.getSightings:  "AriesFile" should not be empty')
+        if self.starFile == None:
+            raise ValueError('Fix.getSightings:  "StarFile" should not be empty')
         approximateLatitude = "0d0.0"
         approximateLongitude = "0d0.0"
         try:
@@ -81,76 +151,92 @@ class Fix():
         except:
             raise ValueError('Fix.getSightings:  "logFile" can not be opened for appending')
         sighting_tuples = []
-        try:
-            tree = ET.parse(self.sightingFile)
-        except:
-            raise ValueError('Fix.getSightings:  "sightingFile" does not exist')
+        tree = ET.parse(self.sightingFile)
         root = tree.getroot()
         if root.tag == "fix":
             for child in tree.findall("sighting"):
                 #body content
                 bodyTag = child.find("body")
                 if bodyTag == None:
-                    raise ValueError('Fix.getSightings:  "body" tag is missing')
+                    self.sightingError = self.sightingError + 1
+                    continue
                 else:
                     body = bodyTag.text
                     if body == None:
-                        raise ValueError('Fix.getSightings:  "body" content is missing')
+                        self.sightingError = self.sightingError + 1
+                        continue
                 #date content
                 dateTag = child.find("date")   
                 if dateTag == None:
-                    raise ValueError('Fix.getSightings:  "date" tag is missing')
+                    self.sightingError = self.sightingError + 1
+                    continue
                 else:
                     date = dateTag.text
                     try:
                         time.strptime(date, "%Y-%m-%d")  
                     except:  
-                        raise ValueError('Fix.getSightings:  "date" is wrong formated')   
+                        self.sightingError = self.sightingError + 1
+                        continue 
+                dateInAriesStar = datetime.datetime.strptime(date, "%Y-%m-%d").strftime("%m/%d/%y")
                 #time content
                 timeTag = child.find("time")
                 if timeTag == None:
-                    raise ValueError('Fix.getSightings:  "time" tag is missing')
+                    self.sightingError = self.sightingError + 1
+                    continue
                 else:
                     timee = timeTag.text
                     try:
                         time.strptime(timee, "%H:%M:%S")
                     except:
-                        raise ValueError('Fix.getSightings:  "time" is wrong formated') 
+                        self.sightingError = self.sightingError + 1
+                        continue
+                shi, fen, miao = timee.split(":")
+                shi = int (shi)
+                fen = int (fen)
+                miao = int (miao)
                 #observation content   
                 observationTag = child.find("observation")   
                 if observationTag == None:
-                    raise ValueError('Fix.getSightings:  "observation" tag is missing')  
+                    self.sightingError = self.sightingError + 1
+                    continue
                 else:
                     observation = observationTag.text
                     if observation.find("d") == -1:
-                        raise ValueError('Fix.getSightings:  missing separator')
+                        self.sightingError = self.sightingError + 1
+                        continue
                     xdy = observation.split("d")
                     if len(xdy) != 2:
-                        if observation.find("d") == 0:
-                            raise ValueError('Fix.getSightings:  missing degrees')
-                        if observation.find("d") == len(observation) - 1:
-                            raise ValueError('Fix.getSightings:  missing minutes')
+                        self.sightingError = self.sightingError + 1
+                        continue
                     else:
                         try:
                             xdy[0] = int (xdy[0])
                         except:
-                            raise ValueError('Fix.getSightings:  degree is an integer')
+                            self.sightingError = self.sightingError + 1
+                            continue
                         if xdy[0] < 0:
-                            raise ValueError('Fix.getSightings:  degree must be positive')
+                            self.sightingError = self.sightingError + 1
+                            continue
                         if xdy[0] >= 90:
-                            raise ValueError('Fix.getSightings: degree must be less than 90')
+                            self.sightingError = self.sightingError + 1
+                            continue
                         try:
                             xdy[1] = float (xdy[1])
                         except:
-                            raise ValueError('Fix.getSightings:  minute is an integer or float')
+                            self.sightingError = self.sightingError + 1
+                            continue
                         if xdy[1] < 0.0:
-                            raise ValueError('Fix.getSightings:  minute must be positive')
+                            self.sightingError = self.sightingError + 1
+                            continue
                         if xdy[1] >= 60.0:
-                            raise ValueError('Fix.getSightings: degree must be less than 90')
+                            self.sightingError = self.sightingError + 1
+                            continue
                         if xdy[1] * 10 % 1 != 0:
-                            raise ValueError('Fix.getSightings:  minutes must have only one decimal place')
+                            self.sightingError = self.sightingError + 1
+                            continue
                         if xdy[0] == 0 and xdy[1] < 0.1:
-                            raise ValueError('Fix.getSightings:  altitude is extremely small')
+                            self.sightingError = self.sightingError + 1
+                            continue
                         observationAltitude = xdy[0] + xdy[1] / 60.0
                 #height content
                 heightTag = child.find("height")
@@ -163,9 +249,11 @@ class Fix():
                     try:
                         height = float (height)
                     except:
-                        raise ValueError('Fix.getSightings:  height must be a numeric')
+                        self.sightingError = self.sightingError + 1
+                        continue
                     if height < 0:
-                        raise ValueError('Fix.getSightings:  height must be .GE. 0')
+                        self.sightingError = self.sightingError + 1
+                        continue
                 #temperature content
                 temperatureTag = child.find("temperature")
                 if temperatureTag == None:
@@ -177,11 +265,14 @@ class Fix():
                     try:
                         temperature = int (temperature)
                     except:
-                        raise ValueError('Fix.getSightings:  temperature must be an integer')
+                        self.sightingError = self.sightingError + 1
+                        continue
                     if temperature < -20:
-                        raise ValueError('Fix.getSightings:  temperature must be .GE. -20')
+                        self.sightingError = self.sightingError + 1
+                        continue
                     if temperature > 120:
-                        raise ValueError('Fix.getSightings:  temperature must be .LE. 120')
+                        self.sightingError = self.sightingError + 1
+                        continue
                 #pressure content
                 pressureTag = child.find("pressure")
                 if pressureTag == None:
@@ -193,11 +284,14 @@ class Fix():
                     try:
                         pressure = int (pressure)
                     except:
-                        raise ValueError('Fix.getSightings:  pressure must be an integer')
+                        self.sightingError = self.sightingError + 1
+                        continue
                     if pressure < 100:
-                        raise ValueError('Fix.getSightings:  pressure must be .GE. 100')
+                        self.sightingError = self.sightingError + 1
+                        continue
                     if pressure > 1100:
-                        raise ValueError('Fix.getSightings:  pressure must be .LE. 1100')
+                        self.sightingError = self.sightingError + 1
+                        continue
                 #horizon content
                 horizonTag = child.find("horizon")
                 if horizonTag == None:
@@ -208,8 +302,8 @@ class Fix():
                         horizon = "natural"
                     horizon = horizon.lower()
                     if horizon != "artificial" and horizon != "natural":
-                        raise ValueError('Fix.getSightings:  horizon must be either"artificial" or "natural"')
-                    
+                        self.sightingError = self.sightingError + 1
+                        continue                   
                 if horizon == "natural":
                     dip = (-0.97 * math.sqrt(height)) / 60
                 else:
@@ -220,27 +314,166 @@ class Fix():
                 degree = int (adjustedAltitude)
                 minute = round((adjustedAltitude - degree) * 60, 1)
                 altitude = str (degree) + "d" + str (minute)
-                
-                sighting = (body, date, timee, altitude)
+                # based on body and observation_date, search starfile to get SHA_star and geograhic position latitude
+                SHA_latitude = self.searchStar(self.starFile, body, dateInAriesStar)
+                if SHA_latitude == []:
+                    self.sightingError = self.sightingError + 1
+                    continue
+                else:
+                    SHA_star = SHA_latitude[0]
+                    self.latitude = SHA_latitude[1].strip()                                    
+                SHA_star = self.setDegreesAndMinutesInFix(SHA_star)
+                if SHA_star == []:
+                    self.sightingError = self.sightingError + 1
+                    continue
+                if SHA_star[0] < 0 or SHA_star[0] >= 360:
+                    self.sightingError = self.sightingError + 1
+                    continue
+                SHA_Star = SHA_star[0] + SHA_star[1] / 60
+                self.latitude = self.setDegreesAndMinutesInFix(self.latitude)
+                if self.latitude == []:
+                    self.sightingError = self.sightingError + 1
+                    continue
+                if self.latitude[0] <= -90 or self.latitude[0] >= 90:
+                    self.sightingError = self.sightingError + 1
+                    continue
+                latitude = str (self.latitude[0]) + "d" + str (self.latitude[1])
+                #based on body, date, hour, search ariesfile to get GHA_Aries1 and GHA_Aries2                
+                GHA = self.searchAriesFile(self.ariesFile, dateInAriesStar, shi)
+                if not len(GHA) == 2:
+                    self.sightingError = self.sightingError + 1
+                    continue
+                try:
+                    GHA_Aries1 = GHA[0].split("\t")[-1].strip()
+                    GHA_Aries2 = GHA[1].split("\t")[-1].strip()
+                except:
+                    self.sightingError = self.sightingError + 1
+                    continue
+                try:
+                    # GHA_Hour1 = shi
+                    GHA_Hour2 = GHA[1].split("\t")[1]
+                    # GHA_Date1 = dateInAriesStar
+                    GHA_Date2 = GHA[1].split("\t")[0]
+                except:
+                    self.sightingError = self.sightingError + 1
+                    continue
+                try:
+                    GHA_date2 = datetime.datetime.strptime(GHA_Date2, "%m/%d/%y")
+                    GHA_hour2 = int (GHA_Hour2)
+                    if GHA_hour2 < 0 or GHA_hour2 > 23:
+                        self.sightingError = self.sightingError + 1
+                        continue
+                except:
+                    self.sightingError = self.sightingError + 1
+                    continue
+                AriesDay = datetime.datetime.strptime(dateInAriesStar, "%m/%d/%y")
+                oneday = datetime.timedelta(days = 1)
+                nextday = (AriesDay + oneday).strftime("%m/%d/%y")
+                # second recording is the following hour
+                if shi != 23 and GHA_Date2 != dateInAriesStar and GHA_Hour2 != str(shi + 1):
+                    self.sightingError = self.sightingError + 1
+                    continue
+                if shi == 23 and GHA_Date2 != nextday and GHA_Hour2 != "0":
+                    self.sightingError = self.sightingError + 1
+                    continue
+                try:
+                    GHA_Aries1_degree, GHA_Aries1_minute = self.setDegreesAndMinutesInFix(GHA_Aries1)
+                    GHA_Aries2_degree, GHA_Aries2_minute = self.setDegreesAndMinutesInFix(GHA_Aries2)
+                except:
+                    self.sightingError = self.sightingError + 1
+                    continue
+                if GHA_Aries1_degree < 0 or GHA_Aries1_degree >= 360 or GHA_Aries2_degree < 0 or GHA_Aries2_degree >= 360:
+                    self.sightingError = self.sightingError + 1
+                    continue
+                GHA_Aries1 = GHA_Aries1_degree + GHA_Aries1_minute / 60
+                GHA_Aries2 = GHA_Aries2_degree + GHA_Aries2_minute / 60
+                # let s be the number of seconds past the hour of the observation's time
+                s = fen * 60 + miao
+                GHA_Aries = GHA_Aries1 + abs(GHA_Aries2 - GHA_Aries1) * (s / 3600.0)
+                self.longitude = (GHA_Aries + SHA_Star) % 360
+                longitude_degree = int (self.longitude) 
+                longitude_minute = round((self.longitude - longitude_degree) * 60, 1)
+                longitude = str (longitude_degree) + "d" + str (longitude_minute)
+                sighting = (body, date, timee, altitude, latitude, longitude)
                 sighting_tuples.append(sighting)
             sighting_tuples = sorted(sighting_tuples, key = itemgetter(1, 2, 0))
-#             print sighting_tuples
-#             print ("-----------------------")
-            for s in sighting_tuples:
-                message = self.readtuple(s)
+            self.sighting_tuples = sighting_tuples
+            for ss in sighting_tuples:
+                message = self.readtuple(ss)
                 logEntry = self.message(message)
                 try:
                     log.write(logEntry)
                 except:
-                    raise ValueError('Fix.getSightings:  "logFile" can not be appended')
-                                
-        endEntry = self.message("End of sighting file:\t" + self.sightingFile)
+                    raise ValueError('Fix.getSightings:  "logFile" can not be appended')                               
+        SightingErrorEntry = self.message("Sighting errors:\t" + str(self.sightingError))
+        EndEntry = self.message("End of sighting file:\t" + self.sightingFile)
         try:
-            log.write(endEntry)
+            log.write(SightingErrorEntry)
+            log.write(EndEntry)
         except:
             raise ValueError('Fix.setSightingFile:  "logFile" can not be appended')
         log.close()
         return (approximateLatitude,approximateLongitude)
+    
+    def setDegreesAndMinutesInFix(self, string):
+        if string == None:
+            return []
+        if string.find("d") == -1:
+            return []
+        wdz = string.split("d")
+        if len(wdz) != 2:
+            return []
+        else:
+            try:
+                wdz[0] = int (wdz[0])
+            except:
+                return []
+            try:
+                wdz[1] = float (wdz[1])
+            except:
+                return []
+            if wdz[1] < 0.0:
+                return []
+            if wdz[1] >= 60.0:
+                return []
+            if wdz[1] * 10 % 1 != 0:
+                return []
+        return [wdz[0], wdz[1]]
+        
+    def searchStar(self, starFile, body, date):
+        star = open(starFile)
+        lines = []
+        for line in star.readlines():
+            item = line.split("\t")
+            if item[0] == body and item[1] <= date:
+                lines.append(line)
+        star.close()
+        if not lines == []:
+            lines = sorted(lines, key = itemgetter(1))
+            SHA_star = lines[-1].split("\t")[-2]
+            latitude = lines[-1].split("\t")[-1]
+            return [SHA_star, latitude]
+        else:
+            return[]      
+                  
+    def searchAriesFile(self, ariesFile, date, hour):
+        aries = open(ariesFile)
+        ariesFile = sorted(aries, key = itemgetter(0, 1))
+        GHA = []
+        id = -1
+        for index, line in enumerate(ariesFile):
+            item = line.split("\t")
+            if item[0] == date and int (item[1]) == hour:
+                GHA.append(line)
+                id = index
+        aries.close()
+        if not len(GHA) == 1:
+            return []
+        try:
+            GHA_Aries2 = ariesFile[id + 1]
+        except:
+            return[]
+        return [GHA[0], GHA_Aries2]
     
     def readtuple(self, tuples):
         message = ""

@@ -1,530 +1,652 @@
 import unittest
-import uuid
-import os
 import Navigation.prod.Fix as F
+import os
 
-class TestFix(unittest.TestCase):
-    
+class FixTest(unittest.TestCase):
     def setUp(self):
         self.className = "Fix."
-        self.logStartString = "Start of log"
-        self.logSightingString = "Start of sighting file"
-        
-        # set default log file name
-        self.DEFAULT_LOG_FILE = "log.txt"
-        if(os.path.isfile(self.DEFAULT_LOG_FILE)):
-            os.remove(self.DEFAULT_LOG_FILE)
-            
-        # generate random log file name
-        self.RANDOM_LOG_FILE = "log" + str(uuid.uuid4())[-12:] + ".txt"
+    def tearDown(self):
+        pass 
     
-
-# 100 Constructor
-#    Analysis
-#        inputs:
-#            logFile: string, optional, unvalidated, len >= 1
-#        outputs:
-#            returns:  instance of Fix
-#            also:    writes "Start of log" to log file
+#    Acceptance Test: 100
+#        Analysis - Constructor
+#            inputs
+#                logFile
+#            outputs
+#                instance of Fix
+#            state change
+#                write "Start of log" to the log file
 #
-#    Happy tests:
-#        logFile:  
-#            omitted  -> Fix()
-#            new logfile  -> Fix("randomName.txt")
-#            existing logfile  -> Fix("myLog.txt") (assuming myLog.txt exits)
-#    Sad tests:
-#        logFile:
-#            nonstring -> Fix(42)
-#            length error -> Fix("")
-#            
-    def test100_010_ShouldConstructFix(self):
-        'Fix.__init__'
-        self.assertIsInstance(F.Fix(), F.Fix, 
-                              "Major error:  Fix not created")
-         
-    def test100_020_ShouldConstructFixWithDefaultFile(self):
-        theFix = F.Fix()
-        try:
-            theLogFile = open(self.DEFAULT_LOG_FILE, 'r')
-            entry = theLogFile.readline()
-            del theLogFile
-            self.assertNotEquals(-1, entry.find("Start of log"), 
-                                 "Minor:  first line of log is incorrect")
-        except IOError:
-            self.fail()
-        self.assertIsInstance(theFix, F.Fix, 
-                              "Major:  log file failed to create")
-        
-    def test100_025_ShouldConstructWithKeywordParm(self):
-        try:
-            theFix = F.Fix(logFile=self.RANDOM_LOG_FILE)
-            self.assertTrue(True)
-        except:
-            self.fail("Minor: incorrect keyword specified")
-            self.cleanup()
- 
-         
-    def test100_030_ShouldConstructFixWithNamedFile(self):
-        theFix = F.Fix(self.RANDOM_LOG_FILE)
-        try:
-            theLogFile = open(self.RANDOM_LOG_FILE, 'r')
-            entry = theLogFile.readline()
-            del theLogFile
-            self.assertNotEquals(-1, entry.find(self.logStartString), 
-                                 "Minor:  first line of log is incorrect")
-        except IOError:
-            self.fail()
-        self.assertIsInstance(theFix, F.Fix, "major:  log file failed to create")
-        self.cleanup()  
-        
-    def test100_040_ShouldConstructFixWithExistingFile(self):
-        theFix = F.Fix(self.RANDOM_LOG_FILE)
-        theFix = F.Fix(self.RANDOM_LOG_FILE)
-        try:
-            theLogFile = open(self.RANDOM_LOG_FILE, 'r')
-            numberOfExpectedEntries = 2
-            for _ in range(numberOfExpectedEntries):
-                entry = theLogFile.readline()
-                self.assertNotEquals(-1, entry.find(self.logStartString), 
-                                     "Minor:  first line of log is incorrect")
-        except IOError:
-            self.fail()
-        self.assertIsInstance(theFix, F.Fix, 
-                              "Major:  log file failed to create")
-        self.cleanup()  
-        
-    def test100_910_ShouldRaiseExceptionOnFileNameLength(self):
+#            Happy path
+#                nominal case for string:  F()
+#                nominal case for string:  F(normal.txt)
+#                nominal case for "Start of log" be written in
+#            Sad path
+#                logFile
+#                    logFile cannot be opended or created
+#                    not a string:  F(123)
+#                    empty string: F("")                   
+#    Happy path
+    def test100_010_ShouldCreatInstanceOfFix(self):
+        self.assertIsInstance(F.Fix(), F.Fix) 
+    def test100_020_ShouldCreateInstanceOfFix(self):
+        self.assertIsInstance(F.Fix("normal.txt"), F.Fix)
+    def test100_030_ShouldWriteStartLogToLogFile(self):
+        aF = F.Fix("normal.txt")
+        with open(aF.logFile, 'r') as f:
+            lines = f.readlines()
+            last_line = lines[-1]
+        f.close()
+        expectedLine = aF.message("Log file:\t" + os.path.abspath(aF.logFile))
+        self.assertEquals(last_line, expectedLine)
+#    Sad path
+    def test100_910_ShouldRaiseExceptionOnEmtpyString(self):
         expectedDiag = self.className + "__init__:"
         with self.assertRaises(ValueError) as context:
-            F.Fix("")
-        self.assertEquals(expectedDiag, context.exception.args[0][0:len(expectedDiag)], 
-                          "Minor:  failure to check for log file name length")  
-        
-    def test100_920_ShouldRaiseExceptionOnNonStringFile(self):
+            aF = F.Fix("")
+        self.assertEquals(expectedDiag, context.exception.args[0][0:len(expectedDiag)]) 
+    def test100_920_ShouldRaiseExceptionOnNonString(self):
         expectedDiag = self.className + "__init__:"
         with self.assertRaises(ValueError) as context:
-            F.Fix(42)
-        self.assertEquals(expectedDiag, context.exception.args[0][0:len(expectedDiag)], 
-                          "Minor:  failure to check for non-string log file name")  
-        
-        
-# 200 setSightingFile
-#    Analysis
-#        inputs:
-#            sightingFile: string, mandatory, unvalidated, format = f.xml (len(f) >= 1)
-#        outputs:
-#            returns:  string with file name
-#            also:    writes "Start of sighting file f.xml" to log file
+            aF = F.Fix(123)
+        self.assertEquals(expectedDiag, context.exception.args[0][0:len(expectedDiag)]) 
+#-----------------------------------------------------------------
+#    Acceptance Test: 200
+#        Analysis - setSightingFile
+#            inputs
+#                sightingFile expressed as a string in form of x.xml
+#                    x has a length .GE. 1
+#                    .xml is literal
+#            outputs
+#                a string whose value is the absolute filepath of the file specified by the parameter.
+#            state change
+#                write entry log "Sighting file:\t" + the absolute filepath to the sighting file to the log file
 #
-#    Happy tests:
-#        sightingFile:  
-#            legal file name  -> setSightingFile("sightingFile.xml")  
-#    Sad tests:
-#        sightingFile:
-#            nonstring -> setSightinghFile(42)
-#            length error -> setSightingFile(".xml")
-#            nonXML -> setSightingFile("sightingFile.txt")
-#            missing -> setSightingFile()
-#            nonexistent file -> setSightingFile("missing.xml")
-    def test200_010_ShouldConstructWithKeywordParm(self):
-        'Minor:  '
-        theFix = F.Fix(logFile=self.RANDOM_LOG_FILE)
-        try:
-            result = theFix.setSightingFile("CA02_200_ValidStarSightingFile.xml")
-            self.assertEquals(result, "CA02_200_ValidStarSightingFile.xml")
-        except:
-            self.fail("Minor: incorrect keyword specified in setSighting parm")
-        self.cleanup()   
-
-    def test200_020_ShouldSetValidSightingFile(self):
-        theFix = F.Fix()
-        result = theFix.setSightingFile("CA02_200_ValidStarSightingFile.xml")
-        self.assertEquals(result,"CA02_200_ValidStarSightingFile.xml")
-        theLogFile = open(self.DEFAULT_LOG_FILE, "r")
-        logFileContents = theLogFile.readlines()
-        self.assertNotEquals(-1, logFileContents[-1].find(self.logSightingString), 
-                             "Minor:  first setSighting logged entry is incorrect")
-        theLogFile.close()
-        
-    def test200_910_ShouldRaiseExceptionOnNonStringFileName(self):
+#            Happy path
+#                nominal case for string:  setSightingFile("sighting.xml")
+#                nominal case for "Sighting file" + path be written in
+#            Sad path
+#                sightingFile
+#                    not string:  setSightingFile(123)
+#                    empty string:  setSightingFile("")
+#                    violate .xml specification:  setSightingFile("t13w")
+#                    violate .xml specification:  setSightingFile("t2.w")
+#                    violate .xml specification:  setSightingFile("t3.txt")
+#                    violate x specification:  setSightingFile(".xml")
+#    Happy path    
+    def test200_010_ShouldReturnString(self):
+        aF = F.Fix()  
+        self.assertEquals(aF.setSightingFile("sightingFile.xml"), os.path.abspath("sightingFile.xml"))
+    def test200_020_ShouldWriteStartLogToLogFile(self):
+        aF = F.Fix()
+        aF.setSightingFile("sightingFile.xml")
+        with open(aF.logFile, 'r') as f:
+            lines = f.readlines()
+            last_line = lines[-1]
+        f.close()
+        expectedLine = aF.message("Sighting file:\t" + os.path.abspath("sightingFile.xml"))
+        self.assertEquals(last_line, expectedLine)
+#    Sad path
+    def test200_910_ShouldShouldRaiseExceptionOnEmtpyString(self):
         expectedDiag = self.className + "setSightingFile:"
-        theFix = F.Fix()
+        aF = F.Fix()
         with self.assertRaises(ValueError) as context:
-            theFix.setSightingFile(42)
-        self.assertEquals(expectedDiag, context.exception.args[0][0:len(expectedDiag)],
-                          "Minor:  failure to check for non-string sighting file name")  
-        
-    def test200_920_ShouldRaiseExceptionOnFileLengthError(self):
+            aF.setSightingFile("")
+        self.assertEquals(expectedDiag, context.exception.args[0][0:len(expectedDiag)]) 
+    def test200_911_ShouldShouldRaiseExceptionOnNonString(self):
         expectedDiag = self.className + "setSightingFile:"
-        theFix = F.Fix()
+        aF = F.Fix()
         with self.assertRaises(ValueError) as context:
-            theFix.setSightingFile(".xml")
-        self.assertEquals(expectedDiag, context.exception.args[0][0:len(expectedDiag)],
-                          "Minor:  failure to check for .GE. 1 sighting file name") 
-        
-    def test200_930_ShouldRaiseExceptionOnNonXmlFile1(self):
+            aF.setSightingFile(123)
+        self.assertEquals(expectedDiag, context.exception.args[0][0:len(expectedDiag)]) 
+    def test200_912_ShouldShouldRaiseExceptionOnMissingExtension(self):
         expectedDiag = self.className + "setSightingFile:"
-        theFix = F.Fix()
+        aF = F.Fix()
         with self.assertRaises(ValueError) as context:
-            theFix.setSightingFile("sighting.")
-        self.assertEquals(expectedDiag, context.exception.args[0][0:len(expectedDiag)],
-                          "Minor:  failure to check for non.xml sighting file extension")
-        
-    def test200_940_ShouldRaiseExceptionOnNonXmlFile2(self):
+            aF.setSightingFile("t13w")
+        self.assertEquals(expectedDiag, context.exception.args[0][0:len(expectedDiag)]) 
+    def test200_913_ShouldShouldRaiseExceptionOnShortExtension(self):
         expectedDiag = self.className + "setSightingFile:"
-        theFix = F.Fix()
+        aF = F.Fix()
         with self.assertRaises(ValueError) as context:
-            theFix.setSightingFile("xml")
-        self.assertEquals(expectedDiag, context.exception.args[0][0:len(expectedDiag)],
-                          "Minor:  failure to delineate between sighting file name and extension") 
-        
-    def test200_950_SholdRaiseExceptionOnMissingFileName(self):
+            aF.setSightingFile("t2.w")
+        self.assertEquals(expectedDiag, context.exception.args[0][0:len(expectedDiag)]) 
+    def test200_914_ShouldShouldRaiseExceptionOnWrongExtension(self):
         expectedDiag = self.className + "setSightingFile:"
-        theFix = F.Fix()
+        aF = F.Fix()
         with self.assertRaises(ValueError) as context:
-            theFix.setSightingFile()
-        self.assertEquals(expectedDiag, context.exception.args[0][0:len(expectedDiag)],
-                          "Major:  failure to check for missing sighting file")       
-        
-           
-    def test200_960_SholdRaiseExceptionOnMissingFile(self):
+            aF.setSightingFile("t3.txt")
+        self.assertEquals(expectedDiag, context.exception.args[0][0:len(expectedDiag)]) 
+    def test200_915_ShouldShouldRaiseExceptionOnMissingNameOfTheFile(self):
         expectedDiag = self.className + "setSightingFile:"
-        theFix = F.Fix()
+        aF = F.Fix()
         with self.assertRaises(ValueError) as context:
-            theFix.setSightingFile(self.RANDOM_LOG_FILE+".xml")
-        self.assertEquals(expectedDiag, context.exception.args[0][0:len(expectedDiag)],
-                          "Major:  failure to check for missing sighting file") 
-        
-# 300 getSightings
-#    Analysis
-#        inputs:
-#            via parm:  none
-#            via file:  xml description of sighting
-#        outputs:
-#            returns:    ("0d0.0", "0d0.0")
-#            via file:    writes body /t date /t time /t adjusted altitude in sorted order
-#        entry criterion:
-#            setSightingsFile must be called first
+            aF.setSightingFile(".xml")
+        self.assertEquals(expectedDiag, context.exception.args[0][0:len(expectedDiag)])
+#-----------------------------------------------------------------
+#    Acceptance Test: 300
+#        Analysis - setAriesFile
+#            inputs
+#                AriesFile expressed as a string in form of x.txt
+#                    x has a length .GE. 1
+#                    .txt is literal
+#            outputs
+#                a string whose value is the absolute filepath of the file specified by the parameter.
+#            state change
+#                write entry log "Aries file:\t" + the absolute filepath to the aries file to the log file
 #
-#    Happy tests:
-#        sighting file 
-#            valid file with any sightings -> should return ("0d0.0", "0d0.0")
-#            valid file with mixed indentation -> should not indicate any errors
-#            valid file with one sighting  -> should log one star body
-#            valid file with multiple sightings -> should log star bodies in sorted order
-#            valid file with multiple sightings at same date/time -> should log star bodies in order sorted by body 
-#            valid file with zero sightings -> should not log any star bodies
-#            valid file with extraneous tag -> should log star(s) without problem
-#        sighting file contents
-#            valid body with natural horizon -> should calculate altitude with dip
-#            valid body with artificial horizon -> should calculate altitude without dip
-#            valid body with default values -> should calculate altitude with height=0, temperature=72, pressure=1010, horizon-natural
-#    Sad tests:
-#        sightingFile:
-#            sighting file not previously set
-#            sighting file with invalid mandatory tag (one of each:  fix, body, date, time, observation)
-#            sighting file with invalid tag value (one of each:  date, time, observation, height, temperature, pressure, horizon)
-
-    def test300_010_ShouldIgnoreMixedIndentation(self):
-        testFile = "CA02_300_GenericValidStarSightingFile.xml"
-        expectedResult = ("0d0.0", "0d0.0")
-        theFix = F.Fix()
-        theFix.setSightingFile(testFile)
-        result = theFix.getSightings()
-        self.assertTupleEqual(expectedResult, result, 
-                              "Minor:  incorrect return value from getSightings")
-
-    def test300_020_ShouldIgnoreMixedIndentation(self):
-        testFile = "CA02_300_ValidWithMixedIndentation.xml"
-        theFix = F.Fix()
-        theFix.setSightingFile(testFile)
-        try:
-            theFix.getSightings()
-            self.assertTrue(True)
-        except:
-            self.fail("Major: getSightings failed on valid file with mixed indentation")  
-
-    def test300_030_ShouldLogOneSighting(self):
-        testFile = "CA02_300_ValidOneStarSighting.xml"
-        targetStringList = ["Aldebaran", "2016-03-01", "23:40:01"]
-        theFix = F.Fix(self.RANDOM_LOG_FILE)
-        theFix.setSightingFile(testFile)
-        theFix.getSightings()
-        
-        theLogFile = open(self.RANDOM_LOG_FILE, "r")
-        logFileContents = theLogFile.readlines()
-        theLogFile.close()
-        
-        sightingCount = 0
-        for logEntryNumber in range(0, len(logFileContents)):
-            if(logFileContents[logEntryNumber].find(targetStringList[0]) > -1):
-                sightingCount += 1
-                for target in targetStringList:
-                    self.assertNotEquals(-1, logFileContents[logEntryNumber].find(target), 
-                                         "Major:  Log entry is not correct for getSightings")
-        self.assertEquals(1, sightingCount)
-        self.cleanup()  
-        
-    def test300_040_ShouldLogMultipleSightingsInTimeOrder(self):       
-        testFile = "CA02_300_ValidMultipleStarSighting.xml"
-        targetStringList = [
-            ["Sirius", "2016-03-01", "00:05:05"],
-            ["Canopus", "2016-03-02", "23:40:01"]
-            ]
-        theFix = F.Fix(self.RANDOM_LOG_FILE)
-        theFix.setSightingFile(testFile)
-        theFix.getSightings()
-        
-        theLogFile = open(self.RANDOM_LOG_FILE, "r")
-        logFileContents = theLogFile.readlines()
-        theLogFile.close()
-        
-        # find entry with first star
-        entryIndex = self.indexInList(targetStringList[0][0], logFileContents)
-        self.assertLess(-1, entryIndex, 
-                           "failure to find " + targetStringList[0][0] +  " in log")
-        for index in range(entryIndex+1, len(targetStringList)):
-            entryIndex += 1
-            if(not(targetStringList[index][0] in logFileContents[entryIndex])):
-                self.fail("failure to find star in log")
-        self.cleanup()  
-
-    def test300_050_ShouldLogMultipleSightingsWithSameDateTime(self):       
-        testFile = "CA02_300_ValidMultipleStarSightingSameDateTime.xml"
-        targetStringList = [
-            ["Acrux", "2016-03-01", "00:05:05"],
-            ["Sirius", "2016-03-01", "00:05:05"],
-            ["Canopus", "2016-03-02", "23:40:01"]
-            ]
-        theFix = F.Fix(self.RANDOM_LOG_FILE)
-        theFix.setSightingFile(testFile)
-        theFix.getSightings()
-        
-        theLogFile = open(self.RANDOM_LOG_FILE, "r")
-        logFileContents = theLogFile.readlines()
-        theLogFile.close()
-        
-        # find entry with first star
-        entryIndex = self.indexInList(targetStringList[0][0], logFileContents)
-        self.assertLess(-1, entryIndex, 
-                           "failure to find " + targetStringList[0][0] +  " in log")
-        for index in range(entryIndex+1, len(targetStringList)):
-            entryIndex += 1
-            if(not(targetStringList[index][0] in logFileContents[entryIndex])):
-                self.fail("failure to find star in log")
-        self.cleanup()   
-
-    def test300_060_ShouldHandleNoSightings(self):       
-        testFile = "CA02_300_ValidWithNoSightings.xml"
-        targetString1 = "End of sighting file"
-        targetString2 = "Start of sighting file"
-        
-        theFix = F.Fix(self.RANDOM_LOG_FILE)
-        theFix.setSightingFile(testFile)
-        theFix.getSightings()
-        
-        theLogFile = open(self.RANDOM_LOG_FILE, "r")
-        logFileContents = theLogFile.readlines()
-        theLogFile.close()
-        
-        endOfSightingFileIndex = self.indexInList(targetString1, logFileContents)
-        self.assertLess(-1,endOfSightingFileIndex,
-                           "log file does not contain 'end of sighting file' entry")
-        self.assertLess(1, endOfSightingFileIndex,
-                           "log file does not contain sufficient entries")
-        self.assertTrue((targetString2 in logFileContents[endOfSightingFileIndex - 1]))
-        self.cleanup()   
-        
-    def test300_070_ShouldIgnoreExtraneousTags(self):       
-        testFile = "CA02_300_ValidWithExtraneousTags.xml"
-        targetStringList = [
-            ["Sirius", "2016-03-01", "00:05:05"],
-            ]
-        theFix = F.Fix(self.RANDOM_LOG_FILE)
-        theFix.setSightingFile(testFile)
-        theFix.getSightings()
-        
-        theLogFile = open(self.RANDOM_LOG_FILE, "r")
-        logFileContents = theLogFile.readlines()
-        theLogFile.close()
-        
-        # find entry with first star
-        entryIndex = self.indexInList(targetStringList[0][0], logFileContents)
-        self.assertLess(-1, entryIndex, 
-                           "failure to find " + targetStringList[0][0] +  " in log")
-        for index in range(entryIndex+1, len(targetStringList)):
-            entryIndex += 1
-            if(not(targetStringList[index][0] in logFileContents[entryIndex])):
-                self.fail("failure to find star in log")
-        self.cleanup()    
-
-
-    def test300_080_ShouldLogStarWithNaturalHorizon(self):
-        testFile = "CA02_300_ValidOneStarNaturalHorizon.xml"
-        targetStringList = ["Hadar", "2016-03-01", "23:40:01", "29d55.7"]
-        theFix = F.Fix(self.RANDOM_LOG_FILE)
-        theFix.setSightingFile(testFile)
-        theFix.getSightings()
-        
-        theLogFile = open(self.RANDOM_LOG_FILE, "r")
-        logFileContents = theLogFile.readlines()
-        theLogFile.close()
-        
-        sightingCount = 0
-        for logEntryNumber in range(0, len(logFileContents)):
-            if(logFileContents[logEntryNumber].find(targetStringList[0]) > -1):
-                sightingCount += 1
-                for target in targetStringList:
-                    self.assertNotEquals(-1, logFileContents[logEntryNumber].find(target), 
-                                         "Major:  Log entry is not correct for getSightings")
-        self.assertEquals(1, sightingCount)
-        self.cleanup()  
-
-
-    def test300_080_ShouldLogStarWithArtificialHorizon(self):
-        testFile = "CA02_300_ValidOneStarArtificialHorizon.xml"
-        targetStringList = ["Hadar", "2016-03-01", "23:40:01", "29d55.7"]
-        theFix = F.Fix(self.RANDOM_LOG_FILE)
-        theFix.setSightingFile(testFile)
-        theFix.getSightings()
-        
-        theLogFile = open(self.RANDOM_LOG_FILE, "r")
-        logFileContents = theLogFile.readlines()
-        theLogFile.close()
-        
-        sightingCount = 0
-        for logEntryNumber in range(0, len(logFileContents)):
-            if(logFileContents[logEntryNumber].find(targetStringList[0]) > -1):
-                sightingCount += 1
-                for target in targetStringList:
-                    self.assertNotEquals(-1, logFileContents[logEntryNumber].find(target), 
-                                         "Major:  Log entry is not correct for getSightings")
-        self.assertEquals(1, sightingCount)
-        self.cleanup()  
-        
-        
-    def test300_090_ShouldLogStarWithDefaultSightingValues(self):
-        testFile = "CA02_300_ValidOneStarWithDefaultValues.xml"
-        targetStringList = ["Hadar", "2016-03-01", "23:40:01", "29d59.9"]
-        theFix = F.Fix(self.RANDOM_LOG_FILE)
-        theFix.setSightingFile(testFile)
-        theFix.getSightings()
-        
-        theLogFile = open(self.RANDOM_LOG_FILE, "r")
-        logFileContents = theLogFile.readlines()
-        theLogFile.close()
-        
-        sightingCount = 0
-        for logEntryNumber in range(0, len(logFileContents)):
-            if(logFileContents[logEntryNumber].find(targetStringList[0]) > -1):
-                sightingCount += 1
-                for target in targetStringList:
-                    self.assertNotEquals(-1, logFileContents[logEntryNumber].find(target), 
-                                         "Major:  Log entry is not correct for getSightings")
-        self.assertEquals(1, sightingCount)
-        self.cleanup()  
-
-    def test300_910_ShouldRaiseExceptionOnNotSettingSightingsFile(self):
-        expectedDiag = self.className + "getSightings:"
-        theFix = F.Fix()
+#            Happy path
+#                nominal case for string:  setAriesFile("aries.txt")
+#                nominal case for "Aries file" + path be written in
+#            Sad path
+#                sightingFile
+#                    not string:  setAriesFile(123)
+#                    empty string:  setAriesFile("")
+#                    violate .txt specification:  setAriesFile("t13w")
+#                    violate .txt specification:  setAriesFile("t3.xml")
+#                    violate x specification:  setAriesFile(".txt")
+#    Happy path    
+    def test300_010_ShouldReturnString(self):
+        aF = F.Fix()  
+        self.assertEquals(aF.setAriesFile("aries.txt"), os.path.abspath("aries.txt"))
+    def test300_020_ShouldWriteAbsolutePathToLogFile(self):
+        aF = F.Fix()
+        aF.setAriesFile("aries.txt")
+        with open(aF.logFile, 'r') as f:
+            lines = f.readlines()
+            last_line = lines[-1]
+        f.close()
+        expectedLine = aF.message("Aries file:\t" + os.path.abspath("aries.txt"))
+        self.assertEquals(last_line, expectedLine)
+#    Sad path
+    def test300_910_ShouldShouldRaiseExceptionOnEmtpyString(self):
+        expectedDiag = self.className + "setAriesFile:"
+        aF = F.Fix()
         with self.assertRaises(ValueError) as context:
-            theFix.getSightings()
-        self.assertEquals(expectedDiag, context.exception.args[0][0:len(expectedDiag)],
-                          "Major:  failure to set sighting file before getSightings()")   
-        
-    def test300_920_ShouldRaiseExceptionOnMissingMandatoryTag(self):
-        expectedDiag = self.className + "getSightings:"
-        theFix = F.Fix()
+            aF.setAriesFile("")
+        self.assertEquals(expectedDiag, context.exception.args[0][0:len(expectedDiag)]) 
+    def test300_911_ShouldShouldRaiseExceptionOnNonString(self):
+        expectedDiag = self.className + "setAriesFile:"
+        aF = F.Fix()
         with self.assertRaises(ValueError) as context:
-            theFix.setSightingFile("CA02_300_InvalidWithMissingMandatoryTags.xml")
-            theFix.getSightings()
-        self.assertEquals(expectedDiag, context.exception.args[0][0:len(expectedDiag)],
-                          "Major:  failure to check for missing mandatory tag")   
-        
-    def test300_930_ShouldRaiseExceptionOnInvalidBody(self):
-        expectedDiag = self.className + "getSightings:"
-        theFix = F.Fix()
+            aF.setAriesFile(123)
+        self.assertEquals(expectedDiag, context.exception.args[0][0:len(expectedDiag)]) 
+    def test300_912_ShouldShouldRaiseExceptionOnMissingExtension(self):
+        expectedDiag = self.className + "setAriesFile:"
+        aF = F.Fix()
         with self.assertRaises(ValueError) as context:
-            theFix.setSightingFile("CA02_300_InvalidBody.xml")
-            theFix.getSightings()
-        self.assertEquals(expectedDiag, context.exception.args[0][0:len(expectedDiag)],
-                          "Major:  failure to check for invalid body")    
-        
-    def test300_940_ShouldRaiseExceptionOnInvalidDate(self):
-        expectedDiag = self.className + "getSightings:"
-        theFix = F.Fix()
+            aF.setAriesFile("t13w")
+        self.assertEquals(expectedDiag, context.exception.args[0][0:len(expectedDiag)]) 
+    def test300_913_ShouldShouldRaiseExceptionOnWrongExtension(self):
+        expectedDiag = self.className + "setAriesFile:"
+        aF = F.Fix()
         with self.assertRaises(ValueError) as context:
-            theFix.setSightingFile("CA02_300_InvalidDate.xml")
-            theFix.getSightings()
-        self.assertEquals(expectedDiag, context.exception.args[0][0:len(expectedDiag)],
-                          "Major:  failure to check for invalid body") 
-        
-    def test300_950_ShouldRaiseExceptionOnInvalidTime(self):
-        expectedDiag = self.className + "getSightings:"
-        theFix = F.Fix()
+            aF.setAriesFile("t3.xml")
+        self.assertEquals(expectedDiag, context.exception.args[0][0:len(expectedDiag)]) 
+    def test300_914_ShouldShouldRaiseExceptionOnMissingNameOfTheFile(self):
+        expectedDiag = self.className + "setAriesFile:"
+        aF = F.Fix()
         with self.assertRaises(ValueError) as context:
-            theFix.setSightingFile("CA02_300_InvalidTime.xml")
-            theFix.getSightings()
-        self.assertEquals(expectedDiag, context.exception.args[0][0:len(expectedDiag)],
-                          "Major:  failure to check for invalid body")    
-        
-    def test300_960_ShouldRaiseExceptionOnInvalidObservation(self):
-        expectedDiag = self.className + "getSightings:"
-        theFix = F.Fix()
+            aF.setAriesFile(".txt")
+        self.assertEquals(expectedDiag, context.exception.args[0][0:len(expectedDiag)])       
+#-----------------------------------------------------------------
+#    Acceptance Test: 400
+#        Analysis - setStarFile
+#            inputs
+#                StarFile expressed as a string in form of x.txt
+#                    x has a length .GE. 1
+#                    .txt is literal
+#            outputs
+#                a string whose value is the absolute filepath of the file specified by the parameter.
+#            state change
+#                write entry log "Star file:\t" + the absolute filepath to the aries file to the log file
+#
+#            Happy path
+#                nominal case for string:  setStarFile("aries.txt")
+#                nominal case for "Star file" + path be written in
+#            Sad path
+#                sightingFile
+#                    not string:  setStarFile(123)
+#                    empty string:  setStarFile("")
+#                    violate .txt specification:  setStarFile("t13w")
+#                    violate .txt specification:  setStarFile("t3.xml")
+#                    violate x specification:  setStarFile(".txt")
+#    Happy path    
+    def test400_010_ShouldReturnString(self):
+        aF = F.Fix()  
+        self.assertEquals(aF.setAriesFile("stars.txt"), os.path.abspath("stars.txt"))
+    def test400_020_ShouldWriteAbsolutePathToLogFile(self):
+        aF = F.Fix()
+        aF.setStarFile("stars.txt")
+        with open(aF.logFile, 'r') as f:
+            lines = f.readlines()
+            last_line = lines[-1]
+        f.close()
+        expectedLine = aF.message("Star file:\t" + os.path.abspath("stars.txt"))
+        self.assertEquals(last_line, expectedLine)
+#    Sad path
+    def test400_910_ShouldShouldRaiseExceptionOnEmtpyString(self):
+        expectedDiag = self.className + "setStarFile:"
+        aF = F.Fix()
         with self.assertRaises(ValueError) as context:
-            theFix.setSightingFile("CA02_300_InvalidObservation.xml")
-            theFix.getSightings()
-        self.assertEquals(expectedDiag, context.exception.args[0][0:len(expectedDiag)],
-                          "Major:  failure to check for invalid body")       
-        
-    def test300_970_ShouldRaiseExceptionOnInvalidHeight(self):
-        expectedDiag = self.className + "getSightings:"
-        theFix = F.Fix()
+            aF.setStarFile("")
+        self.assertEquals(expectedDiag, context.exception.args[0][0:len(expectedDiag)]) 
+    def test400_911_ShouldShouldRaiseExceptionOnNonString(self):
+        expectedDiag = self.className + "setStarFile:"
+        aF = F.Fix()
         with self.assertRaises(ValueError) as context:
-            theFix.setSightingFile("CA02_300_InvalidHeight.xml")
-            theFix.getSightings()
-        self.assertEquals(expectedDiag, context.exception.args[0][0:len(expectedDiag)],
-                          "Major:  failure to check for invalid body" )
-        
-    def test300_980_ShouldRaiseExceptionOnInvalidTemperature(self):
-        expectedDiag = self.className + "getSightings:"
-        theFix = F.Fix()
+            aF.setStarFile(123)
+        self.assertEquals(expectedDiag, context.exception.args[0][0:len(expectedDiag)]) 
+    def test400_912_ShouldShouldRaiseExceptionOnMissingExtension(self):
+        expectedDiag = self.className + "setStarFile:"
+        aF = F.Fix()
         with self.assertRaises(ValueError) as context:
-            theFix.setSightingFile("CA02_300_InvalidTemperature.xml")
-            theFix.getSightings()
-        self.assertEquals(expectedDiag, context.exception.args[0][0:len(expectedDiag)],
-                          "Major:  failure to check for invalid body" )
-        
-    def test300_990_ShouldRaiseExceptionOnInvalidPressure(self):
-        expectedDiag = self.className + "getSightings:"
-        theFix = F.Fix()
+            aF.setStarFile("t13w")
+        self.assertEquals(expectedDiag, context.exception.args[0][0:len(expectedDiag)]) 
+    def test400_913_ShouldShouldRaiseExceptionOnWrongExtension(self):
+        expectedDiag = self.className + "setStarFile:"
+        aF = F.Fix()
         with self.assertRaises(ValueError) as context:
-            theFix.setSightingFile("CA02_300_InvalidPressure.xml")
-            theFix.getSightings()
-        self.assertEquals(expectedDiag, context.exception.args[0][0:len(expectedDiag)],
-                          "Major:  failure to check for invalid body" )
-        
-    def test300_995_ShouldRaiseExceptionOnInvalidHorizon(self):
-        expectedDiag = self.className + "getSightings:"
-        theFix = F.Fix()
+            aF.setStarFile("t3.xml")
+        self.assertEquals(expectedDiag, context.exception.args[0][0:len(expectedDiag)]) 
+    def test400_914_ShouldShouldRaiseExceptionOnMissingNameOfTheFile(self):
+        expectedDiag = self.className + "setStarFile:"
+        aF = F.Fix()
         with self.assertRaises(ValueError) as context:
-            theFix.setSightingFile("CA02_300_InvalidHorizon.xml")
-            theFix.getSightings()
-        self.assertEquals(expectedDiag, context.exception.args[0][0:len(expectedDiag)],
-                          "Major:  failure to check for invalid body" )
-        
-               
-
-
-        
-
-#  helper methods
-    def indexInList(self, target, searchList):
-        for index in range(len(searchList)):
-            if(target in searchList[index]):
-                return index
-        return -1
-    
-    def cleanup(self):
-        if(os.path.isfile(self.RANDOM_LOG_FILE)):
-            os.remove(self.RANDOM_LOG_FILE)  
+            aF.setStarFile(".txt")
+        self.assertEquals(expectedDiag, context.exception.args[0][0:len(expectedDiag)])  
+#-----------------------------------------------------------------
+#    Acceptance Test: 500
+#        Analysis - getSightings
+#            inputs
+#                none
+#            outputs
+#                a tuple consisting of the latitude and longitude of the approximate location
+#            state change
+#                Navigational calculations are written to the log file
+#
+#            Happy path
+#                nominal case for return (0d0.0, 0d0.0)
+#                nominal case for height missing, "End of sighting file" be written in
+#                nominal case for temperature missing, "End of sighting file" be written in
+#                nominal case for pressure missing, "End of sighting file" be written in
+#                nominal case for horizon missing, "End of sighting file" be written in
+#                nominal case for "End of sighting file" be written in
+#                nominal case: log are sorted and written in
+#                "body" tag is missing, sighting error++
+#                "date" tag is missing, sighting error++
+#                "time" tag is missing, sighting error++
+#                "observation" tag is missing, sighting error++
+#                "body" content is an empty string, sighting error++
+#                "date" content is not in yyyy-mm-dd format, sighting error++
+#                "time" content is not in hh:mm:ss format, sighting error++
+#                "observation" content is not in xdy.y format, sighting error++
+#                   where
+#                    x is an integer .GE. 0 and .LT. 90 :
+#                        x is missing
+#                        x is not an integer, e.g. a float
+#                        x is an integer <0
+#                        x is an integer >=90
+#                    d is a literal :
+#                        d is missing
+#                    y.y can be either integer or float with one decimal .GE. 0.0 and .LT. 60.0 :
+#                        y.y is missing
+#                        y.y <0.0
+#                        y.y >=60.0
+#                "height" content is not a numeric, sighting error++
+#                "height" content is a numeric but not .GE. 0, sighting error++
+#                "temperature" content is not an integer, e.g. a string, a float, sighting error++
+#                "temperature" content is an integer, but not in the range .GE. -20 and .LE. 120, sighting error++
+#                "pressure" content is not an integer, e.g. a string, a float, sighting error++
+#                "pressure" content is an integer, but not in the range .GE. 100 and .LE. 1100, sighting error++
+#                "horizon" content is a string, but case-insensitive neither "artificial" nor "natural", sighting error++
+#                "observation" altitude is .LT. 0d0.1, sighting error++
+#            Sad path
+#                setSightingFile must be called before
+#                setAriesFile must be called before
+#                setStarFile must be called before
+#    Happy path      
+    def test500_010_ShouldReturn0d0(self):
+        aF = F.Fix()
+        aF.setSightingFile("sightingFile.xml")
+        aF.setAriesFile("aries.txt")
+        aF.setStarFile("stars.txt")
+        self.assertEquals(aF.getSightings(), ("0d0.0","0d0.0"))
+    def test500_020_ShouldWriteEndOfSightingFileInLogFile(self):
+        aF = F.Fix()
+        aF.setSightingFile("sightingFile.xml")
+        aF.setAriesFile("aries.txt")
+        aF.setStarFile("stars.txt")
+        aF.getSightings()
+        with open(aF.logFile, 'r') as f:
+            lines = f.readlines()
+            last_line = lines[-1]
+        f.close()
+        expectedLine = aF.message("End of sighting file:\tsightingFile.xml")
+        self.assertEquals(last_line, expectedLine)
+    def test500_030_HeightMissingShouldWriteEndOfSightingFileInLogFile(self):
+        aF = F.Fix()
+        aF.setSightingFile("sightingFile_heightmissing.xml")
+        aF.setAriesFile("aries.txt")
+        aF.setStarFile("stars.txt")
+        aF.getSightings()
+        with open(aF.logFile, 'r') as f:
+            lines = f.readlines()
+            last_line = lines[-2]
+        f.close()
+        expectedLine = aF.message("Sighting errors:\t1")
+        self.assertEquals(last_line, expectedLine)
+    def test500_040_TemperatureMissingShouldWriteEndOfSightingFileInLogFile(self):
+        aF = F.Fix()
+        aF.setSightingFile("sightingFile_temperaturemissing.xml")
+        aF.setAriesFile("aries.txt")
+        aF.setStarFile("stars.txt")
+        aF.getSightings()
+        with open(aF.logFile, 'r') as f:
+            lines = f.readlines()
+            last_line = lines[-2]
+        f.close()
+        expectedLine = aF.message("Sighting errors:\t1")
+        self.assertEquals(last_line, expectedLine)
+    def test500_050_PressureMissingShouldWriteEndOfSightingFileInLogFile(self):
+        aF = F.Fix()
+        aF.setSightingFile("sightingFile_pressuremissing.xml")
+        aF.setAriesFile("aries.txt")
+        aF.setStarFile("stars.txt")
+        aF.getSightings()
+        with open(aF.logFile, 'r') as f:
+            lines = f.readlines()
+            last_line = lines[-2]
+        f.close()
+        expectedLine = aF.message("Sighting errors:\t1")
+        self.assertEquals(last_line, expectedLine)
+    def test500_060_HorizonMissingShouldWriteEndOfSightingFileInLogFile(self):
+        aF = F.Fix()
+        aF.setSightingFile("sightingFile_horizonmissing.xml")
+        aF.setAriesFile("aries.txt")
+        aF.setStarFile("stars.txt")
+        aF.getSightings()
+        with open(aF.logFile, 'r') as f:
+            lines = f.readlines()
+            last_line = lines[-2]
+        f.close()
+        expectedLine = aF.message("Sighting errors:\t1")
+        self.assertEquals(last_line, expectedLine)
+    def test500_070_ShouldWriteSortedLogOfSightingFileInLogFile(self):
+        aF = F.Fix()
+        aF.setSightingFile("sightingFile.xml")
+        aF.setAriesFile("aries.txt")
+        aF.setStarFile("stars.txt")
+        aF.getSightings()
+        with open(aF.logFile, 'r') as f:
+            lines = f.readlines()
+            last_secondline = lines[-2]
+            last_thirdline = lines[-3]
+            last_fourthline = lines[-4]
+        f.close()
+        expectedSecondLine = aF.message("Sighting errors:\t1")
+        expectedThirdLine = aF.message("Sirius\t2017-04-17\t09:30:30\t45d11.9\t-16d44.5\t247d6.2")
+        expectedFourthLine = aF.message("Pollux\t2017-04-14\t23:50:14\t15d1.5\t27d59.1\t84d33.4")
+        self.assertEquals(last_secondline, expectedSecondLine)
+        self.assertEquals(last_thirdline, expectedThirdLine)
+        self.assertEquals(last_fourthline, expectedFourthLine)
+    def test500_080_TagBodyIsMissing(self):
+        aF = F.Fix()
+        aF.setSightingFile("sightingFile_bodymissing.xml")
+        aF.setAriesFile("aries.txt")
+        aF.setStarFile("stars.txt")
+        aF.getSightings()
+        with open(aF.logFile, 'r') as f:
+            lines = f.readlines()
+            last_secondline = lines[-2]
+        f.close()
+        expectedSecondLine = aF.message("Sighting errors:\t2")
+        self.assertEquals(last_secondline, expectedSecondLine)
+    def test500_090_TagBodyBad(self):
+        aF = F.Fix()
+        aF.setSightingFile("sightingFile_bodybad.xml")
+        aF.setAriesFile("aries.txt")
+        aF.setStarFile("stars.txt")
+        aF.getSightings()
+        with open(aF.logFile, 'r') as f:
+            lines = f.readlines()
+            last_secondline = lines[-2]
+        f.close()
+        expectedSecondLine = aF.message("Sighting errors:\t2")
+        self.assertEquals(last_secondline, expectedSecondLine)
+    def test500_011_TagDateIsMissing(self):
+        aF = F.Fix()
+        aF.setSightingFile("sightingFile_datemissing.xml")
+        aF.setAriesFile("aries.txt")
+        aF.setStarFile("stars.txt")
+        aF.getSightings()
+        with open(aF.logFile, 'r') as f:
+            lines = f.readlines()
+            last_secondline = lines[-2]
+        f.close()
+        expectedSecondLine = aF.message("Sighting errors:\t2")
+        self.assertEquals(last_secondline, expectedSecondLine)
+    def test500_012_TagDateBad(self):
+        aF = F.Fix()
+        aF.setSightingFile("sightingFile_datebad.xml")
+        aF.setAriesFile("aries.txt")
+        aF.setStarFile("stars.txt")
+        aF.getSightings()
+        with open(aF.logFile, 'r') as f:
+            lines = f.readlines()
+            last_secondline = lines[-2]
+        f.close()
+        expectedSecondLine = aF.message("Sighting errors:\t2")
+        self.assertEquals(last_secondline, expectedSecondLine)
+    def test500_013_TagTimeIsMissing(self):
+        aF = F.Fix()
+        aF.setSightingFile("sightingFile_timemissing.xml")
+        aF.setAriesFile("aries.txt")
+        aF.setStarFile("stars.txt")
+        aF.getSightings()
+        with open(aF.logFile, 'r') as f:
+            lines = f.readlines()
+            last_secondline = lines[-2]
+        f.close()
+        expectedSecondLine = aF.message("Sighting errors:\t2")
+        self.assertEquals(last_secondline, expectedSecondLine)
+    def test500_014_TagTimeIsMissing(self):
+        aF = F.Fix()
+        aF.setSightingFile("sightingFile_timebad.xml")
+        aF.setAriesFile("aries.txt")
+        aF.setStarFile("stars.txt")
+        aF.getSightings()
+        with open(aF.logFile, 'r') as f:
+            lines = f.readlines()
+            last_secondline = lines[-2]
+        f.close()
+        expectedSecondLine = aF.message("Sighting errors:\t2")
+        self.assertEquals(last_secondline, expectedSecondLine)
+    def test500_015_TagObservationIsMissing(self):
+        aF = F.Fix()
+        aF.setSightingFile("sightingFile_observationmissing.xml")
+        aF.setAriesFile("aries.txt")
+        aF.setStarFile("stars.txt")
+        aF.getSightings()
+        with open(aF.logFile, 'r') as f:
+            lines = f.readlines()
+            last_secondline = lines[-2]
+        f.close()
+        expectedSecondLine = aF.message("Sighting errors:\t2")
+        self.assertEquals(last_secondline, expectedSecondLine)
+    def test500_016_ObservationDIsMissing(self):
+        aF = F.Fix()
+        aF.setSightingFile("sightingFile_observationdmissing.xml")
+        aF.setAriesFile("aries.txt")
+        aF.setStarFile("stars.txt")
+        aF.getSightings()
+        with open(aF.logFile, 'r') as f:
+            lines = f.readlines()
+            last_secondline = lines[-2]
+        f.close()
+        expectedSecondLine = aF.message("Sighting errors:\t2")
+        self.assertEquals(last_secondline, expectedSecondLine)
+#     def test020_924_ObservationXIsMissing(self):
+#         expectedDiag = self.className + "setSightingFile:"
+#         aF = F.Fix()
+#         with self.assertRaises(ValueError) as context:
+#             aF.setSightingFile("sightingFile_observationxmissing.xml")
+#         self.assertEquals(expectedDiag, context.exception.args[0][0:len(expectedDiag)])   
+#     def test020_925_ObservationXBad(self):
+#         expectedDiag = self.className + "setSightingFile:"
+#         aF = F.Fix()
+#         with self.assertRaises(ValueError) as context:
+#             aF.setSightingFile("sightingFile_observationxbad.xml")
+#         self.assertEquals(expectedDiag, context.exception.args[0][0:len(expectedDiag)])   
+#     def test020_926_ObservationXNegative(self):
+#         expectedDiag = self.className + "setSightingFile:"
+#         aF = F.Fix()
+#         with self.assertRaises(ValueError) as context:
+#             aF.setSightingFile("sightingFile_observationxnegative.xml")
+#         self.assertEquals(expectedDiag, context.exception.args[0][0:len(expectedDiag)])  
+#     def test020_927_ObservationXG90(self):
+#         expectedDiag = self.className + "setSightingFile:"
+#         aF = F.Fix()
+#         with self.assertRaises(ValueError) as context:
+#             aF.setSightingFile("sightingFile_observationxG90.xml")
+#         self.assertEquals(expectedDiag, context.exception.args[0][0:len(expectedDiag)])   
+#     def test020_928_ObservationYIsMissing(self):
+#         expectedDiag = self.className + "setSightingFile:"
+#         aF = F.Fix()
+#         with self.assertRaises(ValueError) as context:
+#             aF.setSightingFile("sightingFile_observationy.ymissing.xml")
+#         self.assertEquals(expectedDiag, context.exception.args[0][0:len(expectedDiag)])   
+#     def test020_929_ObservationYNegative(self):
+#         expectedDiag = self.className + "setSightingFile:"
+#         aF = F.Fix()
+#         with self.assertRaises(ValueError) as context:
+#             aF.setSightingFile("sightingFile_observationy.ynegative.xml")
+#         self.assertEquals(expectedDiag, context.exception.args[0][0:len(expectedDiag)])  
+#     def test020_930_ObservationYG60(self):
+#         expectedDiag = self.className + "setSightingFile:"
+#         aF = F.Fix()
+#         with self.assertRaises(ValueError) as context:
+#             aF.setSightingFile("sightingFile_observationy.yG60.xml")
+#         self.assertEquals(expectedDiag, context.exception.args[0][0:len(expectedDiag)])   
+#     def test020_931_ObservationYBad(self):
+#         expectedDiag = self.className + "setSightingFile:"
+#         aF = F.Fix()
+#         with self.assertRaises(ValueError) as context:
+#             aF.setSightingFile("sightingFile_observationy.ybad.xml")
+#         self.assertEquals(expectedDiag, context.exception.args[0][0:len(expectedDiag)])  
+    def test500_017_HeightBad(self):
+        aF = F.Fix()
+        aF.setSightingFile("sightingFile_heightstring.xml")
+        aF.setAriesFile("aries.txt")
+        aF.setStarFile("stars.txt")
+        aF.getSightings()
+        with open(aF.logFile, 'r') as f:
+            lines = f.readlines()
+            last_secondline = lines[-2]
+        f.close()
+        expectedSecondLine = aF.message("Sighting errors:\t2")
+        self.assertEquals(last_secondline, expectedSecondLine)
+#     def test020_933_HeightNegative(self):
+#         expectedDiag = self.className + "setSightingFile:"
+#         aF = F.Fix()
+#         with self.assertRaises(ValueError) as context:
+#             aF.setSightingFile("sightingFile_heightnegative.xml")
+#         self.assertEquals(expectedDiag, context.exception.args[0][0:len(expectedDiag)])   
+    def test500_018_TemperatureBad(self):
+        aF = F.Fix()
+        aF.setSightingFile("sightingFile_temperaturestring.xml")
+        aF.setAriesFile("aries.txt")
+        aF.setStarFile("stars.txt")
+        aF.getSightings()
+        with open(aF.logFile, 'r') as f:
+            lines = f.readlines()
+            last_secondline = lines[-2]
+        f.close()
+        expectedSecondLine = aF.message("Sighting errors:\t2")
+        self.assertEquals(last_secondline, expectedSecondLine)
+#     def test020_935_TemperatureLN20(self):
+#         expectedDiag = self.className + "setSightingFile:"
+#         aF = F.Fix()
+#         with self.assertRaises(ValueError) as context:
+#             aF.setSightingFile("sightingFile_temperatureL-20.xml")
+#         self.assertEquals(expectedDiag, context.exception.args[0][0:len(expectedDiag)])   
+#     def test020_936_TemperatureLG120(self):
+#         expectedDiag = self.className + "setSightingFile:"
+#         aF = F.Fix()
+#         with self.assertRaises(ValueError) as context:
+#             aF.setSightingFile("sightingFile_temperatureG120.xml")
+#         self.assertEquals(expectedDiag, context.exception.args[0][0:len(expectedDiag)])   
+    def test500_019_PressureBad(self):
+        aF = F.Fix()
+        aF.setSightingFile("sightingFile_pressurestring.xml")
+        aF.setAriesFile("aries.txt")
+        aF.setStarFile("stars.txt")
+        aF.getSightings()
+        with open(aF.logFile, 'r') as f:
+            lines = f.readlines()
+            last_secondline = lines[-2]
+        f.close()
+        expectedSecondLine = aF.message("Sighting errors:\t2")
+        self.assertEquals(last_secondline, expectedSecondLine)
+#     def test020_938_PressureL100(self):
+#         expectedDiag = self.className + "setSightingFile:"
+#         aF = F.Fix()
+#         with self.assertRaises(ValueError) as context:
+#             aF.setSightingFile("sightingFile_pressureL100.xml")
+#         self.assertEquals(expectedDiag, context.exception.args[0][0:len(expectedDiag)])   
+#     def test020_939_PressureG1100(self):
+#         expectedDiag = self.className + "setSightingFile:"
+#         aF = F.Fix()
+#         with self.assertRaises(ValueError) as context:
+#             aF.setSightingFile("sightingFile_pressureG1100.xml")
+#         self.assertEquals(expectedDiag, context.exception.args[0][0:len(expectedDiag)])   
+    def test500_021_HorizonBad(self):
+        aF = F.Fix()
+        aF.setSightingFile("sightingFile_horizonbad.xml")
+        aF.setAriesFile("aries.txt")
+        aF.setStarFile("stars.txt")
+        aF.getSightings()
+        with open(aF.logFile, 'r') as f:
+            lines = f.readlines()
+            last_secondline = lines[-2]
+        f.close()
+        expectedSecondLine = aF.message("Sighting errors:\t2")
+        self.assertEquals(last_secondline, expectedSecondLine)
+    def test500_022_ShouldRaiseExceptionOnExtremeSmallAltitude(self):
+        aF = F.Fix()
+        aF.setSightingFile("sightingFile_extremesmallaltitude.xml")
+        aF.setAriesFile("aries.txt")
+        aF.setStarFile("stars.txt")
+        aF.getSightings()
+        with open(aF.logFile, 'r') as f:
+            lines = f.readlines()
+            last_secondline = lines[-2]
+        f.close()
+        expectedSecondLine = aF.message("Sighting errors:\t2")
+        self.assertEquals(last_secondline, expectedSecondLine)
+#    Sad path
+    def test500_900_ShouldRaiseExceptionOnNotSettingSightingsFile(self):
+        expectedDiag = self.className + "getSightings:"
+        aF = F.Fix()
+        aF.setAriesFile("aries.txt")
+        aF.setStarFile("stars.txt")
+        with self.assertRaises(ValueError) as context:
+            aF.getSightings()
+        self.assertEquals(expectedDiag, context.exception.args[0][0:len(expectedDiag)])  
+    def test500_910_ShouldRaiseExceptionOnNotSettingAriesFile(self):
+        expectedDiag = self.className + "getSightings:"
+        aF = F.Fix()
+        aF.setSightingFile("sightingFile.xml")
+        aF.setStarFile("stars.txt")
+        with self.assertRaises(ValueError) as context:
+            aF.getSightings()
+        self.assertEquals(expectedDiag, context.exception.args[0][0:len(expectedDiag)])
+    def test500_920_ShouldRaiseExceptionOnNotSettingStarFile(self):
+        expectedDiag = self.className + "getSightings:"
+        aF = F.Fix()
+        aF.setSightingFile("sightingFile.xml")
+        aF.setAriesFile("aries.txt")
+        with self.assertRaises(ValueError) as context:
+            aF.getSightings()
+        self.assertEquals(expectedDiag, context.exception.args[0][0:len(expectedDiag)])
+         

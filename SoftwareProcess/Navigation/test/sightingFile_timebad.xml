@@ -1,9 +1,16 @@
 <!-- <?xml version=“1.0” encoding=“UTF-8”?> -->
+<!-- <?xml version=“1.0” encoding=“UTF-8”?> -->
 <fix>
 	<sighting>
-		<body>Aldebaran</body>
-		<date>2016-03-01</date>
-		<time>11:40pm</time>
+		<body>Unknown</body>
+		<date>2017-04-17</date>
+		<time>10:30:30</time>
+		<observation>00d0.2</observation>
+	</sighting>
+	<sighting>
+		<body>Pollux</body>
+		<date>2017-04-14</date>
+		<time>11:50pm</time>
 		<observation>015d04.9</observation>
 		<height>6.0</height>
 		<temperature>72</temperature>
@@ -11,9 +18,9 @@
 		<horizon>Artificial</horizon>
 	</sighting>
 	<sighting>
-		<body>Peacock</body>
-		<date>2016-03-02</date>
-		<time>00:05:05</time>
+		<body>Sirius</body>
+		<date>2017-04-17</date>
+		<time>09:30:30</time>
 		<observation>045d15.2</observation>
 		<height>6.0</height>
 		<temperature>71</temperature>
