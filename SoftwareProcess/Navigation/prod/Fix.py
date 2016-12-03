@@ -5,6 +5,8 @@ import xml.etree.ElementTree as ET
 import math
 from operator import itemgetter
 import os
+from __builtin__ import str
+from _ast import Str
 
 class Fix():
     def __init__(self, logFile = 'log.txt'):
@@ -41,7 +43,6 @@ class Fix():
         timezone = "-06:00\t"
         result = start + date + timezone + message + "\n"
         return result
-
 
     def setSightingFile(self, sightingFile = None):
         if sightingFile == None:
@@ -137,15 +138,58 @@ class Fix():
         self.starFile = starFile
         return os.path.abspath(starFile)
 
-    def getSightings(self):
+    def getSightings(self, assumedLatitude="0d0.0", assumedLongitude="0d0.0"):
         if self.sightingFile == None:
             raise ValueError('Fix.getSightings:  "SightingFile" should not be empty')
         if self.ariesFile == None:
             raise ValueError('Fix.getSightings:  "AriesFile" should not be empty')
         if self.starFile == None:
             raise ValueError('Fix.getSightings:  "StarFile" should not be empty')
-        approximateLatitude = "0d0.0"
-        approximateLongitude = "0d0.0"
+        if not isinstance(assumedLatitude, str) or not isinstance(assumedLongitude, str):
+            raise ValueError('Fix.getSightings:  parameters violate the specification')
+        hemisphere = ""
+        assumed_latitude = 0.0
+        assumed_longitude = 0.0
+        if assumedLatitude[0] == "N" or assumedLatitude[0] == "S":
+            hemisphere = assumedLatitude[0]
+            latitude_degree = assumedLatitude[1:]
+            try:
+                xdy = latitude_degree.split("d", 1)
+                assumedLatitude_degree = int (xdy[0])
+                if assumedLatitude_degree < 0 or assumedLatitude_degree >= 90:
+                    raise ValueError('Fix.getSightings:  assumedLatitude violate the specification')
+                assumedLatitude_minute = float (xdy[1])
+                if assumedLatitude_minute < 0 or assumedLatitude_minute >= 60:
+                    raise ValueError('Fix.getSightings:  assumedLatitude violate the specification')
+                if assumedLatitude_degree == 0 and assumedLatitude_minute == 0:
+                    raise ValueError('Fix.getSightings:  assumedLatitude violate the specification')
+                d_index = xdy[1].find(".")
+                if not d_index == len(xdy[1]) - 2:
+                    raise ValueError('Fix.getSightings:  assumedLatitude violate the specification')
+            except:
+                raise ValueError('Fix.getSightings:  assumedLatitude violate the specification')
+            assumed_latitude = assumedLatitude_degree + assumedLatitude_minute / 60.0
+            if hemisphere == "S":
+                assumed_latitude = 0 - assumed_latitude
+        else:
+            if not assumedLatitude == "0d0.0":
+                raise ValueError('Fix.getSightings:  assumedLatitude violate the specification')
+        try:
+            xdy = assumedLongitude.split("d", 1)
+            assumedLongitude_degree = int (xdy[0])
+            if assumedLongitude_degree < 0 or assumedLongitude_degree >= 360:
+                raise ValueError('Fix.getSightings:  assumedLatitude violate the specification')
+            assumedLongitude_minute = float (xdy[1])
+            if assumedLongitude_minute < 0 or assumedLongitude_minute >= 60:
+                raise ValueError('Fix.getSightings:  assumedLongitude violate the specification')
+            d_index = xdy[1].find(".")
+            if not d_index == len(xdy[1]) - 2:
+                raise ValueError('Fix.getSightings:  assumedLongitude violate the specification')
+        except:
+            raise ValueError('Fix.getSightings:  assumedLongitude violate the specification')
+        assumed_longitude = assumedLongitude_degree + assumedLongitude_minute / 60.0
+        approximateLatitude = 0.0
+        approximateLongitude = 0.0
         try:
             log = open(self.logFile, 'a+') 
         except:
@@ -310,6 +354,7 @@ class Fix():
                     dip = 0
                 Ctemperature = (temperature - 32) / 1.8   
                 refraction = (-0.00452 * pressure) / (273 + Ctemperature) / math.tan(observationAltitude * math.pi / 180.0)
+                #adjusted altitude
                 adjustedAltitude = observationAltitude + dip + refraction
                 degree = int (adjustedAltitude)
                 minute = round((adjustedAltitude - degree) * 60, 1)
@@ -338,6 +383,11 @@ class Fix():
                     self.sightingError = self.sightingError + 1
                     continue
                 latitude = str (self.latitude[0]) + "d" + str (self.latitude[1])
+                #geographic position latitude
+                if self.latitude[0] < 0 :
+                    geographic_latitude = self.latitude[0] - self.latitude[1] / 60.0
+                else:
+                    geographic_latitude = self.latitude[0] + self.latitude[1] / 60.0
                 #based on body, date, hour, search ariesfile to get GHA_Aries1 and GHA_Aries2                
                 GHA = self.searchAriesFile(self.ariesFile, dateInAriesStar, shi)
                 if not len(GHA) == 2:
@@ -390,11 +440,35 @@ class Fix():
                 # let s be the number of seconds past the hour of the observation's time
                 s = fen * 60 + miao
                 GHA_Aries = GHA_Aries1 + abs(GHA_Aries2 - GHA_Aries1) * (s / 3600.0)
-                self.longitude = (GHA_Aries + SHA_Star) % 360
+                #geographic position longitude
+                self.longitude = (GHA_Aries + SHA_Star) % 360                 
                 longitude_degree = int (self.longitude) 
                 longitude_minute = round((self.longitude - longitude_degree) * 60, 1)
                 longitude = str (longitude_degree) + "d" + str (longitude_minute)
-                sighting = (body, date, timee, altitude, latitude, longitude)
+                self.longitude = longitude_degree + longitude_minute / 60.0               
+                LHA = (self.longitude + assumed_longitude) % 360
+                sinlat1 = math.sin(geographic_latitude*math.pi/180)
+                sinlat2 = math.sin(assumed_latitude*math.pi/180)
+                sinlat = sinlat1 * sinlat2
+                coslat1 = math.cos(geographic_latitude*math.pi/180)
+                coslat2 = math.cos(assumed_latitude*math.pi/180)
+                cosLHA = math.cos(LHA*math.pi/180)
+                coslat = coslat1 * coslat2 * cosLHA
+                intermediate_distance = sinlat + coslat
+                corrected_altitude = math.asin(intermediate_distance) * 180 / math.pi
+                distance_adjustment = int(round((corrected_altitude - adjustedAltitude) * 60))
+                
+                azimuth_numerator = math.sin(geographic_latitude*math.pi/180) - math.sin(assumed_latitude*math.pi/180)*intermediate_distance
+                azimuth_denominator = math.cos(assumed_latitude*math.pi/180)*math.cos(corrected_altitude*math.pi/180)
+                intermediate_azimuth = azimuth_numerator / azimuth_denominator
+                azimuth_adjustment = math.acos(intermediate_azimuth) * 180 / math.pi                
+                azimuth_adjustment_degree = int (azimuth_adjustment)
+                azimuth_adjustment_minute = round((azimuth_adjustment - azimuth_adjustment_degree) * 60, 1)
+                azimuth_adjustment_string = str (azimuth_adjustment_degree) + "d" + str (azimuth_adjustment_minute)
+                #sum for each sighting
+                approximateLatitude = approximateLatitude + distance_adjustment * math.cos(azimuth_adjustment*math.pi/180)
+                approximateLongitude = approximateLongitude + distance_adjustment * math.sin(azimuth_adjustment*math.pi/180)
+                sighting = (body, date, timee, altitude, latitude, longitude, assumedLatitude, assumedLongitude, azimuth_adjustment_string, distance_adjustment)
                 sighting_tuples.append(sighting)
             sighting_tuples = sorted(sighting_tuples, key = itemgetter(1, 2, 0))
             self.sighting_tuples = sighting_tuples
@@ -406,14 +480,25 @@ class Fix():
                 except:
                     raise ValueError('Fix.getSightings:  "logFile" can not be appended')                               
         SightingErrorEntry = self.message("Sighting errors:\t" + str(self.sightingError))
-        EndEntry = self.message("End of sighting file:\t" + self.sightingFile)
+        approximateLatitude = approximateLatitude / 60 + assumed_latitude
+        approximateLatitude_degree = int (approximateLatitude)
+        if approximateLatitude_degree < 0:
+            hemisphere = "S"
+        approximateLatitude_minute = abs(round((approximateLatitude - approximateLatitude_degree) * 60, 1))
+        approximateLatitude_degree = abs(approximateLatitude_degree)
+        approximate_latitude = hemisphere + str(approximateLatitude_degree) + "d" + str(approximateLatitude_minute)
+        approximateLongitude = approximateLongitude / 60 + assumed_longitude
+        approximateLongitude_degree = int (approximateLongitude)
+        approximateLongitude_minute = round((approximateLongitude - approximateLongitude_degree) * 60, 1)
+        approximate_longitude = str(approximateLongitude_degree) + "d" + str(approximateLongitude_minute)
+        ApproximateEntry = self.message("Approximate latitude:\t" + approximate_latitude + "\t" + "Approximate longitude:\t" + approximate_longitude)
         try:
             log.write(SightingErrorEntry)
-            log.write(EndEntry)
+            log.write(ApproximateEntry)
         except:
-            raise ValueError('Fix.setSightingFile:  "logFile" can not be appended')
+            raise ValueError('Fix.getSightings:  "logFile" can not be appended')
         log.close()
-        return (approximateLatitude,approximateLongitude)
+        return (approximate_latitude,approximate_longitude)
     
     def setDegreesAndMinutesInFix(self, string):
         if string == None:

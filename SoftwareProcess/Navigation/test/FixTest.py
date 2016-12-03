@@ -266,12 +266,11 @@ class FixTest(unittest.TestCase):
 #                Navigational calculations are written to the log file
 #
 #            Happy path
-#                nominal case for return (0d0.0, 0d0.0)
-#                nominal case for height missing, "End of sighting file" be written in
-#                nominal case for temperature missing, "End of sighting file" be written in
-#                nominal case for pressure missing, "End of sighting file" be written in
-#                nominal case for horizon missing, "End of sighting file" be written in
-#                nominal case for "End of sighting file" be written in
+#                nominal case for approximate latitude and longitude are missing
+#                nominal case for height missing, sighting error not change
+#                nominal case for temperature missing, sighting error not change
+#                nominal case for pressure missing, sighting error not change
+#                nominal case for horizon missing, sighting error not change
 #                nominal case: log are sorted and written in
 #                "body" tag is missing, sighting error++
 #                "date" tag is missing, sighting error++
@@ -305,24 +304,39 @@ class FixTest(unittest.TestCase):
 #                setSightingFile must be called before
 #                setAriesFile must be called before
 #                setStarFile must be called before
+#                approximate latitude or longitude is not a string
+#                approximate latitude is a string but not in format hxdy.y
+#                approximate longitude is a string but not in format xdy.y
 #    Happy path      
-    def test500_010_ShouldReturn0d0(self):
+    def test500_010_ShouldReturnApproximateLatitudeLongitude(self):
         aF = F.Fix()
         aF.setSightingFile("sightingFile.xml")
         aF.setAriesFile("aries.txt")
         aF.setStarFile("stars.txt")
-        self.assertEquals(aF.getSightings(), ("0d0.0","0d0.0"))
-    def test500_020_ShouldWriteEndOfSightingFileInLogFile(self):
+        self.assertEquals(aF.getSightings("N27d59.5","85d33.4"), ("S20d15.5","79d19.9"))
+#     def test500_020_ShouldWriteEndOfSightingFileInLogFile(self):
+#         aF = F.Fix()
+#         aF.setSightingFile("sightingFile.xml")
+#         aF.setAriesFile("aries.txt")
+#         aF.setStarFile("stars.txt")
+#         aF.getSightings()
+#         with open(aF.logFile, 'r') as f:
+#             lines = f.readlines()
+#             last_line = lines[-1]
+#         f.close()
+#         expectedLine = aF.message("End of sighting file:\tsightingFile.xml")
+#         self.assertEquals(last_line, expectedLine)
+    def test500_020_ShouldWriteApproximateAnlgeInLogFile(self):
         aF = F.Fix()
         aF.setSightingFile("sightingFile.xml")
         aF.setAriesFile("aries.txt")
         aF.setStarFile("stars.txt")
-        aF.getSightings()
+        aF.getSightings("N27d59.5", "85d33.4")
         with open(aF.logFile, 'r') as f:
             lines = f.readlines()
             last_line = lines[-1]
         f.close()
-        expectedLine = aF.message("End of sighting file:\tsightingFile.xml")
+        expectedLine = aF.message("Approximate latitude:\tS20d15.5\tApproximate longitude:\t79d19.9")
         self.assertEquals(last_line, expectedLine)
     def test500_030_HeightMissingShouldWriteEndOfSightingFileInLogFile(self):
         aF = F.Fix()
@@ -372,24 +386,36 @@ class FixTest(unittest.TestCase):
         f.close()
         expectedLine = aF.message("Sighting errors:\t1")
         self.assertEquals(last_line, expectedLine)
-    def test500_070_ShouldWriteSortedLogOfSightingFileInLogFile(self):
+#     def test500_070_ShouldWriteSortedLogOfSightingFileInLogFile(self):
+#         aF = F.Fix()
+#         aF.setSightingFile("sightingFile.xml")
+#         aF.setAriesFile("aries.txt")
+#         aF.setStarFile("stars.txt")
+#         aF.getSightings()
+#         with open(aF.logFile, 'r') as f:
+#             lines = f.readlines()
+#             last_secondline = lines[-2]
+#             last_thirdline = lines[-3]
+#             last_fourthline = lines[-4]
+#         f.close()
+#         expectedSecondLine = aF.message("Sighting errors:\t1")
+#         expectedThirdLine = aF.message("Sirius\t2017-04-17\t09:30:30\t45d11.9\t-16d44.5\t247d6.2")
+#         expectedFourthLine = aF.message("Pollux\t2017-04-14\t23:50:14\t15d1.5\t27d59.1\t84d33.4")
+#         self.assertEquals(last_secondline, expectedSecondLine)
+#         self.assertEquals(last_thirdline, expectedThirdLine)
+#         self.assertEquals(last_fourthline, expectedFourthLine)
+    def test500_070_ShouldWriteSightingFileEntryInLogFile(self):
         aF = F.Fix()
         aF.setSightingFile("sightingFile.xml")
         aF.setAriesFile("aries.txt")
         aF.setStarFile("stars.txt")
-        aF.getSightings()
+        aF.getSightings("N27d59.5", "85d33.4")
         with open(aF.logFile, 'r') as f:
             lines = f.readlines()
-            last_secondline = lines[-2]
             last_thirdline = lines[-3]
-            last_fourthline = lines[-4]
         f.close()
-        expectedSecondLine = aF.message("Sighting errors:\t1")
-        expectedThirdLine = aF.message("Sirius\t2017-04-17\t09:30:30\t45d11.9\t-16d44.5\t247d6.2")
-        expectedFourthLine = aF.message("Pollux\t2017-04-14\t23:50:14\t15d1.5\t27d59.1\t84d33.4")
-        self.assertEquals(last_secondline, expectedSecondLine)
+        expectedThirdLine = aF.message("Pollux\t2017-04-17\t23:50:14\t15d1.5\t27d59.1\t87d30.8\tN27d59.5\t85d33.4\t7d21.1\t-2919")
         self.assertEquals(last_thirdline, expectedThirdLine)
-        self.assertEquals(last_fourthline, expectedFourthLine)
     def test500_080_TagBodyIsMissing(self):
         aF = F.Fix()
         aF.setSightingFile("sightingFile_bodymissing.xml")
@@ -624,6 +650,12 @@ class FixTest(unittest.TestCase):
         f.close()
         expectedSecondLine = aF.message("Sighting errors:\t2")
         self.assertEquals(last_secondline, expectedSecondLine)
+    def test500_023_ShouldReturnApproximateLatitudeLongitude(self):
+        aF = F.Fix()
+        aF.setSightingFile("sighting.xml")
+        aF.setAriesFile("aries.txt")
+        aF.setStarFile("stars.txt")
+        self.assertEquals(aF.getSightings("S53d38.4","74d35.3"), ("S13d28.0","101d42.2"))
 #    Sad path
     def test500_900_ShouldRaiseExceptionOnNotSettingSightingsFile(self):
         expectedDiag = self.className + "getSightings:"
@@ -648,5 +680,68 @@ class FixTest(unittest.TestCase):
         aF.setAriesFile("aries.txt")
         with self.assertRaises(ValueError) as context:
             aF.getSightings()
+        self.assertEquals(expectedDiag, context.exception.args[0][0:len(expectedDiag)])
+    def test500_930_ShouldRaiseExceptionOnAssumedLatitudeNotString(self):
+        expectedDiag = self.className + "getSightings:"
+        aF = F.Fix()
+        aF.setSightingFile("sightingFile.xml")
+        aF.setAriesFile("aries.txt")
+        aF.setStarFile("stars.txt")
+        with self.assertRaises(ValueError) as context:
+            aF.getSightings(123, "")
+        self.assertEquals(expectedDiag, context.exception.args[0][0:len(expectedDiag)])  
+    def test500_940_ShouldRaiseExceptionOnAssumedLongitudeNotString(self):
+        expectedDiag = self.className + "getSightings:"
+        aF = F.Fix()
+        aF.setSightingFile("sightingFile.xml")
+        aF.setAriesFile("aries.txt")
+        aF.setStarFile("stars.txt")
+        with self.assertRaises(ValueError) as context:
+            aF.getSightings("", 123)
+        self.assertEquals(expectedDiag, context.exception.args[0][0:len(expectedDiag)])
+    def test500_950_ShouldRaiseExceptionOnAssumedLatitudeBadFormatString1(self):
+        expectedDiag = self.className + "getSightings:"
+        aF = F.Fix()
+        aF.setSightingFile("sightingFile.xml")
+        aF.setAriesFile("aries.txt")
+        aF.setStarFile("stars.txt")
+        with self.assertRaises(ValueError) as context:
+            aF.getSightings("34d4", "")
+        self.assertEquals(expectedDiag, context.exception.args[0][0:len(expectedDiag)])
+    def test500_960_ShouldRaiseExceptionOnAssumedLatitudeBadFormatString2(self):
+        expectedDiag = self.className + "getSightings:"
+        aF = F.Fix()
+        aF.setSightingFile("sightingFile.xml")
+        aF.setAriesFile("aries.txt")
+        aF.setStarFile("stars.txt")
+        with self.assertRaises(ValueError) as context:
+            aF.getSightings("N0d0.0", "")
+        self.assertEquals(expectedDiag, context.exception.args[0][0:len(expectedDiag)])
+    def test500_970_ShouldRaiseExceptionOnAssumedLatitudeBadFormatString3(self):
+        expectedDiag = self.className + "getSightings:"
+        aF = F.Fix()
+        aF.setSightingFile("sightingFile.xml")
+        aF.setAriesFile("aries.txt")
+        aF.setStarFile("stars.txt")
+        with self.assertRaises(ValueError) as context:
+            aF.getSightings("N34d4.12", "")
+        self.assertEquals(expectedDiag, context.exception.args[0][0:len(expectedDiag)])
+    def test500_980_ShouldRaiseExceptionOnAssumedLongitudeBadFormatString1(self):
+        expectedDiag = self.className + "getSightings:"
+        aF = F.Fix()
+        aF.setSightingFile("sightingFile.xml")
+        aF.setAriesFile("aries.txt")
+        aF.setStarFile("stars.txt")
+        with self.assertRaises(ValueError) as context:
+            aF.getSightings("N34d4", "N34d4")
+        self.assertEquals(expectedDiag, context.exception.args[0][0:len(expectedDiag)])
+    def test500_990_ShouldRaiseExceptionOnAssumedLongitudeBadFormatString2(self):
+        expectedDiag = self.className + "getSightings:"
+        aF = F.Fix()
+        aF.setSightingFile("sightingFile.xml")
+        aF.setAriesFile("aries.txt")
+        aF.setStarFile("stars.txt")
+        with self.assertRaises(ValueError) as context:
+            aF.getSightings("N34d4", "34d4.12")
         self.assertEquals(expectedDiag, context.exception.args[0][0:len(expectedDiag)])
          

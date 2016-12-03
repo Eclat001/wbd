@@ -96,7 +96,7 @@ class TCurveTest(unittest.TestCase):
          
     def test600_020ShouldCalculateNominalCase2Tail(self):
         myT = T.TCurve(7)
-        self.assertAlmostEquals(myT.p(1.8946, 2), .90, 2)
+        self.assertAlmostEquals(myT.p(1.8946, 2), .90, 3)
  
     def test600_030ShouldCalculateLowNLowT1TailEdgeCase(self):
         myT = T.TCurve(3)
@@ -120,7 +120,7 @@ class TCurveTest(unittest.TestCase):
          
     def test600_080ShouldCalculateLowNHighT2EdgeCase(self):
         myT = T.TCurve(3)
-        self.assertAlmostEquals(myT.p(5.8409, 2), .99, 2)
+        self.assertAlmostEquals(myT.p(5.8409, 2), .99, 3)
          
     def test600_090ShouldCalculateHighHighT1TailEdgeCase(self):
         myT = T.TCurve(20)
@@ -128,7 +128,7 @@ class TCurveTest(unittest.TestCase):
          
     def test600_100ShouldCalculateHighHighT2TailEdgeCase(self):
         myT = T.TCurve(20)
-        self.assertAlmostEquals(myT.p(2.8453, 2), .99, 2)
+        self.assertAlmostEquals(myT.p(2.8453, 2), .99, 3)
        
 # Sad path
     def test600_910ShouldRaiseExceptionOnMissingT(self):

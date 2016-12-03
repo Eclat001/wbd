@@ -1,0 +1,4 @@
+LOG:	16-11-09 10:02:53-06:00	Start of log
+LOG:	16-11-09 10:02:53-06:00	Start of sighting file:	CA03_300_ValidStarLatLon.xml
+LOG:	16-11-09 10:02:53-06:00	Sabik	2017-01-01	03:00:00	9d54.7
+LOG:	16-11-09 10:02:53-06:00	End of sighting file:	CA03_300_ValidStarLatLon.xml

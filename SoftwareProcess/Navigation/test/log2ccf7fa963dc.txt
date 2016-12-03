@@ -1,0 +1,2 @@
+LOG:	16-11-06 20:01:56-06:00	Log file:	/Users/eclat/git/SoftwareProcess/SoftwareProcess/Navigation/test/log2ccf7fa963dc.txt
+LOG:	16-11-06 20:01:56-06:00	Sighting file:	/Users/eclat/git/SoftwareProcess/SoftwareProcess/Navigation/test/CA02_300_ValidMultipleStarSightingSameDateTime.xml

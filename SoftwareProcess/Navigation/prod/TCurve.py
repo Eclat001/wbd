@@ -36,7 +36,7 @@ class TCurve(object):
             
         if(result > 1.0):
             raise ValueError(functionName + "result > 1.0")
-        
+        print result
         return result
         
 # internal methods
@@ -62,7 +62,7 @@ class TCurve(object):
         return result
          
     def integrate(self, t, n, f):
-        epsilon = 0.001
+        epsilon = 0.0001
         simpsonOld = 0
         simpsonNew = epsilon
         s = 4
@@ -79,8 +79,3 @@ class TCurve(object):
             simpsonNew *= (w / 3)  
             s = s * 2 
         return simpsonNew
-        
-    
-        
-            
-        

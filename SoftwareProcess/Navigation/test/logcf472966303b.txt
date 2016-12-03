@@ -1,0 +1,2 @@
+LOG:	16-11-09 10:02:53-06:00	Start of log
+LOG:	16-11-09 10:02:53-06:00	Start of sighting file:	CA02_300_InvalidBody.xml
